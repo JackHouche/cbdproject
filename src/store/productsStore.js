@@ -1,99 +1,106 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
+import { productService, categoryService } from '../lib/supabase';
 
 const useProductsStore = create(
   persist(
     (set, get) => ({
       // État
-      products: [
-        {
-          id: '1',
-          name: 'Huile CBD 10%',
-          slug: 'huile-cbd-10',
-          description: 'Huile de CBD premium à 10% de concentration',
-          longDescription: 'Notre huile CBD 10% est extraite de chanvre biologique européen. Parfaite pour commencer avec le CBD.',
-          category: 'huiles',
-          price: 49.99,
-          originalPrice: 59.99,
-          stock: 25,
-          images: ['/images/huile-cbd-10.jpg'],
-          specifications: {
-            concentration: '10%',
-            volume: '10ml',
-            origine: 'France',
-            extraction: 'CO2 supercritique'
-          },
-          benefits: ['Relaxation', 'Sommeil', 'Anti-stress'],
-          usageInstructions: 'Commencez par 2-3 gouttes sous la langue, 2 fois par jour.',
-          precautions: 'Ne pas dépasser la dose recommandée. Déconseillé aux femmes enceintes.',
-          isActive: true,
-          isFeatured: true,
-          isPromo: true,
-          rating: 4.8,
-          reviewCount: 156,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-        {
-          id: '2',
-          name: 'Fleurs CBD Amnesia',
-          slug: 'fleurs-cbd-amnesia',
-          description: 'Fleurs CBD Amnesia de qualité premium',
-          longDescription: 'Variété Amnesia cultivée en indoor, riche en CBD et faible en THC (<0.2%).',
-          category: 'fleurs',
-          price: 8.99,
-          originalPrice: null,
-          stock: 15,
-          images: ['/images/fleurs-amnesia.jpg'],
-          specifications: {
-            concentration: '18%',
-            poids: '1g',
-            culture: 'Indoor',
-            variete: 'Amnesia'
-          },
-          benefits: ['Détente', 'Créativité', 'Focus'],
-          usageInstructions: 'À vaporiser ou infuser. Ne pas fumer.',
-          precautions: 'Réservé aux adultes. Usage externe uniquement.',
-          isActive: true,
-          isFeatured: false,
-          isPromo: false,
-          rating: 4.6,
-          reviewCount: 89,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        }
-      ],
-      categories: [
-        { id: 'huiles', name: 'Huiles CBD', slug: 'huiles' },
-        { id: 'fleurs', name: 'Fleurs CBD', slug: 'fleurs' },
-        { id: 'tisanes', name: 'Tisanes CBD', slug: 'tisanes' },
-        { id: 'resines', name: 'Résines CBD', slug: 'resines' },
-        { id: 'cosmétiques', name: 'Cosmétiques CBD', slug: 'cosmetiques' }
-      ],
+      products: [],
+      categories: [],
       isLoading: false,
       error: null,
 
+      // Actions de chargement depuis Supabase
+      loadProducts: async () => {
+        set({ isLoading: true, error: null });
+        try {
+          const { data, error } = await productService.getActiveProducts();
+          if (error) throw new Error(error);
+          
+          // Transformer les données Supabase au format du store
+          const transformedProducts = data.map(product => ({
+            ...product,
+            category: product.categories?.slug || product.category_id,
+            originalPrice: product.original_price,
+            longDescription: product.long_description,
+            usageInstructions: product.usage_instructions,
+            isActive: product.is_active,
+            isFeatured: product.is_featured,
+            isPromo: product.is_promo,
+            reviewCount: product.review_count,
+            createdAt: product.created_at,
+            updatedAt: product.updated_at,
+          }));
+          
+          set({ products: transformedProducts, isLoading: false });
+        } catch (error) {
+          console.error('Erreur chargement produits:', error);
+          set({ error: error.message, isLoading: false });
+        }
+      },
+
+      loadCategories: async () => {
+        try {
+          const { data, error } = await categoryService.getAllCategories();
+          if (error) throw new Error(error);
+          
+          // Transformer les données Supabase au format du store
+          const transformedCategories = data.map(cat => ({
+            id: cat.slug,
+            name: cat.name,
+            slug: cat.slug,
+            supabaseId: cat.id
+          }));
+          
+          set({ categories: transformedCategories });
+        } catch (error) {
+          console.error('Erreur chargement catégories:', error);
+          set({ error: error.message });
+        }
+      },
+
       // Actions CRUD
-      createProduct: (productData) => {
-        const newProduct = {
-          id: uuidv4(),
-          slug: productData.name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-'),
-          isActive: true,
-          isFeatured: false,
-          isPromo: false,
-          rating: 0,
-          reviewCount: 0,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          ...productData,
-        };
+      createProduct: async (productData) => {
+        set({ isLoading: true, error: null });
+        try {
+          // Trouver l'ID de la catégorie Supabase
+          const categories = get().categories;
+          const category = categories.find(c => c.id === productData.category);
+          
+          const supabaseData = {
+            name: productData.name,
+            slug: productData.name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-'),
+            description: productData.description,
+            long_description: productData.longDescription,
+            category_id: category?.supabaseId,
+            price: productData.price,
+            original_price: productData.originalPrice,
+            stock: productData.stock,
+            benefits: productData.benefits,
+            usage_instructions: productData.usageInstructions,
+            precautions: productData.precautions,
+            is_active: true,
+            is_featured: false,
+            is_promo: false,
+            rating: 0,
+            review_count: 0,
+          };
 
-        set(state => ({
-          products: [...state.products, newProduct]
-        }));
+          const { data, error } = await productService.createProduct(supabaseData);
+          if (error) throw new Error(error);
 
-        return newProduct;
+          // Recharger les produits après création
+          await get().loadProducts();
+          set({ isLoading: false });
+          
+          return data;
+        } catch (error) {
+          console.error('Erreur création produit:', error);
+          set({ error: error.message, isLoading: false });
+          throw error;
+        }
       },
 
       updateProduct: (id, productData) => {
