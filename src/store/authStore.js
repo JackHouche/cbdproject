@@ -13,6 +13,7 @@ const useAuthStore = create(
       user: null,
       isLoading: false,
       error: null,
+      isInitialized: false, // Nouveau flag pour savoir si l'auth a été vérifiée
 
       // Actions Admin
       loginAdmin: async (password) => {
@@ -25,7 +26,7 @@ const useAuthStore = create(
           if (isValid) {
             const adminUser = {
               id: 'admin',
-              email: 'admin@iocbd.fr',
+              email: 'admin@iocbd.com',
               role: 'admin',
               name: 'Administrateur IØCBD',
               loginTime: new Date().toISOString(),
@@ -45,21 +46,24 @@ const useAuthStore = create(
               isAuthenticated: true, 
               user: adminUser, 
               isLoading: false,
-              error: null 
+              error: null,
+              isInitialized: true
             });
 
             return { success: true };
           } else {
             set({ 
               error: 'Mot de passe incorrect', 
-              isLoading: false 
+              isLoading: false,
+              isInitialized: true
             });
             return { success: false, error: 'Mot de passe incorrect' };
           }
         } catch (error) {
           set({ 
             error: 'Erreur de connexion', 
-            isLoading: false 
+            isLoading: false,
+            isInitialized: true
           });
           return { success: false, error: 'Erreur de connexion' };
         }
@@ -93,14 +97,16 @@ const useAuthStore = create(
             isAuthenticated: true, 
             user: customerUser, 
             isLoading: false,
-            error: null 
+            error: null,
+            isInitialized: true
           });
 
           return { success: true };
         } catch (error) {
           set({ 
             error: 'Erreur de connexion', 
-            isLoading: false 
+            isLoading: false,
+            isInitialized: true
           });
           return { success: false, error: 'Erreur de connexion' };
         }
@@ -113,52 +119,114 @@ const useAuthStore = create(
         set({ 
           isAuthenticated: false, 
           user: null, 
-          error: null 
+          error: null,
+          isInitialized: true
         });
       },
 
-      // Vérifier la session au démarrage
-      checkAuth: () => {
-        const adminToken = Cookies.get('admin_token');
-        const customerToken = Cookies.get('customer_token');
+      // Vérifier la session au démarrage (appelé une seule fois)
+      checkAuth: async () => {
+        const state = get();
         
-        if (adminToken) {
-          try {
-            const tokenData = JSON.parse(atob(adminToken));
-            if (tokenData.expires > Date.now()) {
-              set({ 
-                isAuthenticated: true, 
-                user: {
+        // Éviter de vérifier plusieurs fois
+        if (state.isInitialized) {
+          return state.isAuthenticated;
+        }
+
+        set({ isLoading: true });
+
+        try {
+          const adminToken = Cookies.get('admin_token');
+          const customerToken = Cookies.get('customer_token');
+          
+          if (adminToken) {
+            try {
+              const tokenData = JSON.parse(atob(adminToken));
+              if (tokenData.expires > Date.now()) {
+                const adminUser = {
                   id: 'admin',
-                  email: 'admin@iocbd.fr',
+                  email: 'admin@iocbd.com',
                   role: 'admin',
                   name: 'Administrateur IØCBD',
-                }
-              });
-              return true;
-            }
-          } catch (error) {
-            console.error('Token admin invalide');
-          }
-        }
-        
-        if (customerToken) {
-          try {
-            const tokenData = JSON.parse(atob(customerToken));
-            if (tokenData.expires > Date.now()) {
-              // Récupérer les données client depuis le localStorage si disponible
-              const userData = get().user;
-              if (userData && userData.role === 'customer') {
-                set({ isAuthenticated: true });
+                };
+                
+                set({ 
+                  isAuthenticated: true, 
+                  user: adminUser,
+                  isLoading: false,
+                  isInitialized: true
+                });
                 return true;
+              } else {
+                // Token expiré
+                Cookies.remove('admin_token');
               }
+            } catch (error) {
+              console.error('Token admin invalide:', error);
+              Cookies.remove('admin_token');
             }
-          } catch (error) {
-            console.error('Token client invalide');
           }
+          
+          if (customerToken) {
+            try {
+              const tokenData = JSON.parse(atob(customerToken));
+              if (tokenData.expires > Date.now()) {
+                // Récupérer les données client depuis le localStorage si disponible
+                const userData = state.user;
+                if (userData && userData.role === 'customer') {
+                  set({ 
+                    isAuthenticated: true,
+                    isLoading: false,
+                    isInitialized: true
+                  });
+                  return true;
+                } else {
+                  // Créer un utilisateur par défaut si pas de données
+                  const customerUser = {
+                    id: tokenData.userId,
+                    email: 'client@example.com',
+                    role: 'customer',
+                    name: 'Client',
+                  };
+                  
+                  set({ 
+                    isAuthenticated: true, 
+                    user: customerUser,
+                    isLoading: false,
+                    isInitialized: true
+                  });
+                  return true;
+                }
+              } else {
+                // Token expiré
+                Cookies.remove('customer_token');
+              }
+            } catch (error) {
+              console.error('Token client invalide:', error);
+              Cookies.remove('customer_token');
+            }
+          }
+          
+          // Aucun token valide trouvé
+          set({ 
+            isAuthenticated: false, 
+            user: null,
+            isLoading: false,
+            isInitialized: true
+          });
+          return false;
+          
+        } catch (error) {
+          console.error('Erreur lors de la vérification de l\'authentification:', error);
+          set({ 
+            isAuthenticated: false, 
+            user: null,
+            isLoading: false,
+            isInitialized: true,
+            error: 'Erreur de vérification'
+          });
+          return false;
         }
-        
-        return false;
       },
 
       // Utilitaires
@@ -173,12 +241,15 @@ const useAuthStore = create(
       },
 
       clearError: () => set({ error: null }),
+      
+      // Reset de l'état d'initialisation (pour forcer une nouvelle vérification)
+      resetInitialization: () => set({ isInitialized: false }),
     }),
     {
       name: 'auth-storage',
       partialize: (state) => ({ 
         isAuthenticated: state.isAuthenticated,
-        user: state.user 
+        user: state.user
       }),
     }
   )

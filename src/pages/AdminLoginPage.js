@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Container,
@@ -19,6 +19,7 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import useAuthStore from '../store/authStore';
+import AuthDebug from '../components/AuthDebug';
 import toast from 'react-hot-toast';
 
 const AdminLoginPage = () => {
@@ -26,7 +27,18 @@ const AdminLoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   
-  const { loginAdmin, isLoading, error, clearError } = useAuthStore();
+  const { loginAdmin, isLoading, error, clearError, isAuthenticated, user, checkAuth } = useAuthStore();
+
+  useEffect(() => {
+    const checkIfAlreadyLoggedIn = async () => {
+      await checkAuth();
+      if (isAuthenticated && user?.role === 'admin') {
+        navigate('/admin');
+      }
+    };
+    
+    checkIfAlreadyLoggedIn();
+  }, [isAuthenticated, user, navigate, checkAuth]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -42,7 +54,7 @@ const AdminLoginPage = () => {
     
     if (result.success) {
       toast.success('Connexion réussie !');
-      navigate('/admin/dashboard');
+      navigate('/admin');
     } else {
       toast.error(result.error || 'Erreur de connexion');
     }
@@ -181,6 +193,9 @@ const AdminLoginPage = () => {
             </Typography>
           </Box>
         </Paper>
+        
+        {/* Debug Component - À supprimer en production */}
+        <AuthDebug />
       </motion.div>
     </Container>
   );

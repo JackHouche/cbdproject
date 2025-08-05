@@ -1,10 +1,9 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Box } from '@mui/material';
 import Header from './components/Layout/Header';
 import Footer from './components/Layout/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
-import useAuthStore from './store/authStore';
 import HomePage from './pages/HomePage';
 import ProductsPage from './pages/ProductsPage';
 import ProductDetailPage from './pages/ProductDetailPage';
@@ -17,11 +16,6 @@ import AdminLoginPage from './pages/AdminLoginPage';
 import CustomerPage from './pages/CustomerPage';
 
 function App() {
-  const { checkAuth } = useAuthStore();
-
-  useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
 
   return (
     <Box sx={{ 
