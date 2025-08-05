@@ -1,17 +1,15 @@
 import React, { useState } from 'react';
 import {
-  Box,
   Container,
-  Typography,
   Grid,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
+  Card,
+  CardContent,
+  Typography,
   Button,
+  Box,
+  Chip,
+  Tab,
+  Tabs,
   IconButton,
   Dialog,
   DialogTitle,
@@ -22,436 +20,545 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Card,
-  CardContent,
-  Chip,
+  Switch,
+  FormControlLabel,
+  Alert,
+  Paper,
 } from '@mui/material';
+import { DataGrid } from '@mui/x-data-grid';
 import {
+  Dashboard as DashboardIcon,
+  Inventory,
+  ShoppingCart,
+  TrendingUp,
   Add,
   Edit,
   Delete,
   Visibility,
-  TrendingUp,
-  ShoppingCart,
+  ToggleOn,
+  ToggleOff,
+  Star,
+  MonetizationOn,
   People,
-  Euro,
+  LocalShipping,
+  Logout,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
+import useAuthStore from '../store/authStore';
+import useProductsStore from '../store/productsStore';
+import useOrdersStore from '../store/ordersStore';
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 const AdminPage = () => {
-  const [openDialog, setOpenDialog] = useState(false);
+  const [activeTab, setActiveTab] = useState(0);
+  const [productDialogOpen, setProductDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
-  const [formData, setFormData] = useState({
+  const [productForm, setProductForm] = useState({
     name: '',
-    category: '',
-    price: '',
-    stock: '',
     description: '',
+    longDescription: '',
+    category: 'huiles',
+    price: '',
+    originalPrice: '',
+    stock: '',
+    benefits: '',
+    usageInstructions: '',
+    precautions: '',
   });
 
-  const [products, setProducts] = useState([
-    {
-      id: 1,
-      name: 'Huile CBD 10%',
-      category: 'huiles',
-      price: 49.90,
-      stock: 23,
-      sold: 127,
-      status: 'active',
-    },
-    {
-      id: 2,
-      name: 'Fleurs CBD Amnesia',
-      category: 'fleurs',
-      price: 8.90,
-      stock: 45,
-      sold: 89,
-      status: 'active',
-    },
-    {
-      id: 3,
-      name: 'Tisane Relaxante',
-      category: 'tisanes',
-      price: 15.90,
-      stock: 0,
-      sold: 156,
-      status: 'outofstock',
-    },
-  ]);
+  const navigate = useNavigate();
+  const { user, logout } = useAuthStore();
+  const {
+    products,
+    categories,
+    createProduct,
+    updateProduct,
+    deleteProduct,
+    toggleProductStatus,
+    toggleFeatured,
+    togglePromo,
+    getStats,
+  } = useProductsStore();
 
-  const stats = [
-    {
-      title: 'Ventes totales',
-      value: '€12,450',
-      icon: Euro,
-      color: 'success.main',
-      change: '+12%',
-    },
-    {
-      title: 'Commandes',
-      value: '284',
-      icon: ShoppingCart,
-      color: 'primary.main',
-      change: '+8%',
-    },
-    {
-      title: 'Clients',
-      value: '1,023',
-      icon: People,
-      color: 'info.main',
-      change: '+15%',
-    },
-    {
-      title: 'Conversion',
-      value: '2.4%',
-      icon: TrendingUp,
-      color: 'warning.main',
-      change: '+0.3%',
-    },
-  ];
+  const {
+    orders,
+    updateOrderStatus,
+    updatePaymentStatus,
+    addTrackingNumber,
+    getOrderStats,
+    getStatusLabel,
+    getStatusColor,
+    getPaymentStatusLabel,
+    getPaymentStatusColor,
+  } = useOrdersStore();
 
-  const categories = [
-    { value: 'huiles', label: 'Huiles CBD' },
-    { value: 'fleurs', label: 'Fleurs CBD' },
-    { value: 'tisanes', label: 'Tisanes' },
-    { value: 'resines', label: 'Résines' },
-    { value: 'cosmetiques', label: 'Cosmétiques' },
-  ];
+  const productStats = getStats();
+  const orderStats = getOrderStats();
 
-  const handleOpenDialog = (product = null) => {
-    setEditingProduct(product);
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue);
+  };
+
+  const handleLogout = () => {
+    logout();
+    toast.success('Déconnexion réussie');
+    navigate('/');
+  };
+
+  // Product management functions
+  const openProductDialog = (product = null) => {
     if (product) {
-      setFormData({
+      setEditingProduct(product);
+      setProductForm({
         name: product.name,
+        description: product.description,
+        longDescription: product.longDescription || '',
         category: product.category,
         price: product.price.toString(),
+        originalPrice: product.originalPrice?.toString() || '',
         stock: product.stock.toString(),
-        description: product.description || '',
+        benefits: Array.isArray(product.benefits) ? product.benefits.join(', ') : '',
+        usageInstructions: product.usageInstructions || '',
+        precautions: product.precautions || '',
       });
     } else {
-      setFormData({
+      setEditingProduct(null);
+      setProductForm({
         name: '',
-        category: '',
-        price: '',
-        stock: '',
         description: '',
+        longDescription: '',
+        category: 'huiles',
+        price: '',
+        originalPrice: '',
+        stock: '',
+        benefits: '',
+        usageInstructions: '',
+        precautions: '',
       });
     }
-    setOpenDialog(true);
+    setProductDialogOpen(true);
   };
 
-  const handleCloseDialog = () => {
-    setOpenDialog(false);
-    setEditingProduct(null);
-    setFormData({
-      name: '',
-      category: '',
-      price: '',
-      stock: '',
-      description: '',
-    });
-  };
-
-  const handleInputChange = (field) => (event) => {
-    setFormData({
-      ...formData,
-      [field]: event.target.value,
-    });
-  };
-
-  const handleSubmit = () => {
-    if (!formData.name || !formData.category || !formData.price || !formData.stock) {
+  const handleProductSubmit = () => {
+    if (!productForm.name || !productForm.description || !productForm.price || !productForm.stock) {
       toast.error('Veuillez remplir tous les champs obligatoires');
       return;
     }
 
     const productData = {
-      name: formData.name,
-      category: formData.category,
-      price: parseFloat(formData.price),
-      stock: parseInt(formData.stock),
-      description: formData.description,
-      status: parseInt(formData.stock) > 0 ? 'active' : 'outofstock',
+      name: productForm.name,
+      description: productForm.description,
+      longDescription: productForm.longDescription,
+      category: productForm.category,
+      price: parseFloat(productForm.price),
+      originalPrice: productForm.originalPrice ? parseFloat(productForm.originalPrice) : null,
+      stock: parseInt(productForm.stock),
+      benefits: productForm.benefits.split(',').map(b => b.trim()).filter(b => b),
+      usageInstructions: productForm.usageInstructions,
+      precautions: productForm.precautions,
     };
 
     if (editingProduct) {
-      setProducts(products.map(p => 
-        p.id === editingProduct.id 
-          ? { ...p, ...productData }
-          : p
-      ));
-      toast.success('Produit modifié avec succès');
+      updateProduct(editingProduct.id, productData);
+      toast.success('Produit mis à jour avec succès');
     } else {
-      const newProduct = {
-        id: Math.max(...products.map(p => p.id)) + 1,
-        ...productData,
-        sold: 0,
-      };
-      setProducts([...products, newProduct]);
-      toast.success('Produit ajouté avec succès');
+      createProduct(productData);
+      toast.success('Produit créé avec succès');
     }
 
-    handleCloseDialog();
+    setProductDialogOpen(false);
+    setEditingProduct(null);
   };
 
-  const handleDelete = (productId) => {
+  const handleDeleteProduct = (productId) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) {
-      setProducts(products.filter(p => p.id !== productId));
-      toast.success('Produit supprimé');
+      deleteProduct(productId);
+      toast.success('Produit supprimé avec succès');
     }
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'active':
-        return 'success';
-      case 'outofstock':
-        return 'error';
-      default:
-        return 'default';
-    }
-  };
+  // Product columns for DataGrid
+  const productColumns = [
+    { field: 'id', headerName: 'ID', width: 80 },
+    { field: 'name', headerName: 'Nom', width: 200 },
+    { field: 'category', headerName: 'Catégorie', width: 120 },
+    { 
+      field: 'price', 
+      headerName: 'Prix', 
+      width: 100,
+      renderCell: (params) => `${params.value}€`
+    },
+    { field: 'stock', headerName: 'Stock', width: 80 },
+    {
+      field: 'isActive',
+      headerName: 'Statut',
+      width: 120,
+      renderCell: (params) => (
+        <Chip
+          label={params.value ? 'Actif' : 'Inactif'}
+          color={params.value ? 'success' : 'default'}
+          size="small"
+        />
+      ),
+    },
+    {
+      field: 'isFeatured',
+      headerName: 'Vedette',
+      width: 100,
+      renderCell: (params) => (
+        <IconButton
+          onClick={() => toggleFeatured(params.row.id)}
+          color={params.value ? 'primary' : 'default'}
+        >
+          <Star />
+        </IconButton>
+      ),
+    },
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      width: 150,
+      renderCell: (params) => (
+        <Box>
+          <IconButton onClick={() => openProductDialog(params.row)}>
+            <Edit />
+          </IconButton>
+          <IconButton onClick={() => toggleProductStatus(params.row.id)}>
+            {params.row.isActive ? <ToggleOff /> : <ToggleOn />}
+          </IconButton>
+          <IconButton onClick={() => handleDeleteProduct(params.row.id)}>
+            <Delete />
+          </IconButton>
+        </Box>
+      ),
+    },
+  ];
 
-  const getStatusLabel = (status) => {
-    switch (status) {
-      case 'active':
-        return 'Actif';
-      case 'outofstock':
-        return 'Rupture';
-      default:
-        return 'Inconnu';
-    }
-  };
+  // Order columns for DataGrid
+  const orderColumns = [
+    { field: 'id', headerName: 'Commande', width: 150 },
+    { 
+      field: 'customerName', 
+      headerName: 'Client', 
+      width: 200,
+      valueGetter: (params) => `${params.row.customerInfo.firstName} ${params.row.customerInfo.lastName}`
+    },
+    { 
+      field: 'total', 
+      headerName: 'Total', 
+      width: 100,
+      valueGetter: (params) => `${params.row.pricing.total}€`
+    },
+    {
+      field: 'status',
+      headerName: 'Statut',
+      width: 120,
+      renderCell: (params) => (
+        <Chip
+          label={getStatusLabel(params.value)}
+          color={getStatusColor(params.value)}
+          size="small"
+        />
+      ),
+    },
+    {
+      field: 'paymentStatus',
+      headerName: 'Paiement',
+      width: 120,
+      renderCell: (params) => (
+        <Chip
+          label={getPaymentStatusLabel(params.value)}
+          color={getPaymentStatusColor(params.value)}
+          size="small"
+        />
+      ),
+    },
+    { 
+      field: 'createdAt', 
+      headerName: 'Date', 
+      width: 120,
+      valueGetter: (params) => new Date(params.value).toLocaleDateString('fr-FR')
+    },
+  ];
+
+  // Dashboard Tab
+  const DashboardTab = () => (
+    <Grid container spacing={3}>
+      {/* Stats Cards */}
+      <Grid item xs={12} md={3}>
+        <Card>
+          <CardContent>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Inventory color="primary" sx={{ fontSize: '2rem' }} />
+              <Box>
+                <Typography variant="h4">{productStats.totalProducts}</Typography>
+                <Typography color="text.secondary">Produits</Typography>
+              </Box>
+            </Box>
+          </CardContent>
+        </Card>
+      </Grid>
+
+      <Grid item xs={12} md={3}>
+        <Card>
+          <CardContent>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <ShoppingCart color="primary" sx={{ fontSize: '2rem' }} />
+              <Box>
+                <Typography variant="h4">{orderStats.totalOrders}</Typography>
+                <Typography color="text.secondary">Commandes</Typography>
+              </Box>
+            </Box>
+          </CardContent>
+        </Card>
+      </Grid>
+
+      <Grid item xs={12} md={3}>
+        <Card>
+          <CardContent>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <MonetizationOn color="primary" sx={{ fontSize: '2rem' }} />
+              <Box>
+                <Typography variant="h4">{orderStats.totalRevenue.toFixed(2)}€</Typography>
+                <Typography color="text.secondary">Chiffre d'affaires</Typography>
+              </Box>
+            </Box>
+          </CardContent>
+        </Card>
+      </Grid>
+
+      <Grid item xs={12} md={3}>
+        <Card>
+          <CardContent>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <TrendingUp color="primary" sx={{ fontSize: '2rem' }} />
+              <Box>
+                <Typography variant="h4">{orderStats.averageOrderValue.toFixed(2)}€</Typography>
+                <Typography color="text.secondary">Panier moyen</Typography>
+              </Box>
+            </Box>
+          </CardContent>
+        </Card>
+      </Grid>
+
+      {/* Recent Orders */}
+      <Grid item xs={12}>
+        <Card>
+          <CardContent>
+            <Typography variant="h6" sx={{ mb: 2 }}>Commandes récentes</Typography>
+            <DataGrid
+              rows={orders.slice(0, 5)}
+              columns={orderColumns}
+              autoHeight
+              hideFooter
+            />
+          </CardContent>
+        </Card>
+      </Grid>
+    </Grid>
+  );
+
+  // Products Tab
+  const ProductsTab = () => (
+    <Box>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+        <Typography variant="h5">Gestion des produits</Typography>
+        <Button
+          variant="contained"
+          startIcon={<Add />}
+          onClick={() => openProductDialog()}
+        >
+          Ajouter un produit
+        </Button>
+      </Box>
+
+      <Card>
+        <CardContent>
+          <DataGrid
+            rows={products}
+            columns={productColumns}
+            autoHeight
+            pageSize={10}
+            rowsPerPageOptions={[5, 10, 25]}
+          />
+        </CardContent>
+      </Card>
+    </Box>
+  );
+
+  // Orders Tab
+  const OrdersTab = () => (
+    <Box>
+      <Typography variant="h5" sx={{ mb: 3 }}>Gestion des commandes</Typography>
+      
+      <Card>
+        <CardContent>
+          <DataGrid
+            rows={orders}
+            columns={orderColumns}
+            autoHeight
+            pageSize={10}
+            rowsPerPageOptions={[5, 10, 25]}
+          />
+        </CardContent>
+      </Card>
+    </Box>
+  );
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth="xl" sx={{ py: 4 }}>
       {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-      >
-        <Box sx={{ mb: 6 }}>
-          <Typography
-            variant="h3"
-            sx={{
-              mb: 2,
-              background: 'linear-gradient(45deg, #4CAF50, #8BC34A)',
-              backgroundClip: 'text',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-            }}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+        <Typography variant="h3" sx={{ fontWeight: 600 }}>
+          Administration IØCBD
+        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Typography variant="body1">
+            Bienvenue, {user?.name}
+          </Typography>
+          <Button
+            variant="outlined"
+            startIcon={<Logout />}
+            onClick={handleLogout}
           >
-            Administration
-          </Typography>
-          <Typography variant="h6" color="text.secondary">
-            Gestion des produits et statistiques
-          </Typography>
+            Déconnexion
+          </Button>
         </Box>
-      </motion.div>
+      </Box>
 
-      {/* Statistiques */}
+      {/* Tabs */}
+      <Paper sx={{ mb: 3 }}>
+        <Tabs value={activeTab} onChange={handleTabChange}>
+          <Tab icon={<DashboardIcon />} label="Dashboard" />
+          <Tab icon={<Inventory />} label="Produits" />
+          <Tab icon={<ShoppingCart />} label="Commandes" />
+        </Tabs>
+      </Paper>
+
+      {/* Tab Content */}
       <motion.div
+        key={activeTab}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.2 }}
+        transition={{ duration: 0.3 }}
       >
-        <Grid container spacing={3} sx={{ mb: 6 }}>
-          {stats.map((stat, index) => (
-            <Grid item xs={12} sm={6} md={3} key={index}>
-              <Card>
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <Box>
-                      <Typography color="text.secondary" gutterBottom>
-                        {stat.title}
-                      </Typography>
-                      <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-                        {stat.value}
-                      </Typography>
-                      <Typography variant="body2" sx={{ color: 'success.main' }}>
-                        {stat.change} ce mois
-                      </Typography>
-                    </Box>
-                    <Box
-                      sx={{
-                        width: 60,
-                        height: 60,
-                        borderRadius: '50%',
-                        backgroundColor: stat.color,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <stat.icon sx={{ color: 'white', fontSize: '1.5rem' }} />
-                    </Box>
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
+        {activeTab === 0 && <DashboardTab />}
+        {activeTab === 1 && <ProductsTab />}
+        {activeTab === 2 && <OrdersTab />}
       </motion.div>
 
-      {/* Gestion des produits */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.3 }}
-      >
-        <Paper sx={{ p: 3 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-            <Typography variant="h5" sx={{ fontWeight: 600 }}>
-              Gestion des produits
-            </Typography>
-            <Button
-              variant="contained"
-              startIcon={<Add />}
-              onClick={() => handleOpenDialog()}
-              sx={{
-                background: 'linear-gradient(45deg, #4CAF50, #8BC34A)',
-                '&:hover': {
-                  background: 'linear-gradient(45deg, #388E3C, #689F38)',
-                },
-              }}
-            >
-              Ajouter un produit
-            </Button>
-          </Box>
-
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Nom</TableCell>
-                  <TableCell>Catégorie</TableCell>
-                  <TableCell>Prix</TableCell>
-                  <TableCell>Stock</TableCell>
-                  <TableCell>Vendus</TableCell>
-                  <TableCell>Statut</TableCell>
-                  <TableCell>Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {products.map((product) => (
-                  <TableRow key={product.id}>
-                    <TableCell>{product.name}</TableCell>
-                    <TableCell>
-                      {categories.find(c => c.value === product.category)?.label || product.category}
-                    </TableCell>
-                    <TableCell>{product.price}€</TableCell>
-                    <TableCell>{product.stock}</TableCell>
-                    <TableCell>{product.sold}</TableCell>
-                    <TableCell>
-                      <Chip
-                        label={getStatusLabel(product.status)}
-                        color={getStatusColor(product.status)}
-                        size="small"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <IconButton
-                        size="small"
-                        onClick={() => handleOpenDialog(product)}
-                        sx={{ mr: 1 }}
-                      >
-                        <Edit />
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        color="error"
-                        onClick={() => handleDelete(product.id)}
-                      >
-                        <Delete />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Paper>
-      </motion.div>
-
-      {/* Dialog d'ajout/modification */}
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+      {/* Product Dialog */}
+      <Dialog open={productDialogOpen} onClose={() => setProductDialogOpen(false)} maxWidth="md" fullWidth>
         <DialogTitle>
           {editingProduct ? 'Modifier le produit' : 'Ajouter un produit'}
         </DialogTitle>
         <DialogContent>
-          <Grid container spacing={3} sx={{ mt: 1 }}>
-            <Grid item xs={12}>
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label="Nom du produit"
-                value={formData.name}
-                onChange={handleInputChange('name')}
-                required
+                label="Nom du produit *"
+                value={productForm.name}
+                onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth required>
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth>
                 <InputLabel>Catégorie</InputLabel>
                 <Select
-                  value={formData.category}
-                  label="Catégorie"
-                  onChange={handleInputChange('category')}
+                  value={productForm.category}
+                  onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
                 >
-                  {categories.map((category) => (
-                    <MenuItem key={category.value} value={category.value}>
-                      {category.label}
+                  {categories.map((cat) => (
+                    <MenuItem key={cat.id} value={cat.id}>
+                      {cat.name}
                     </MenuItem>
                   ))}
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12}>
               <TextField
                 fullWidth
-                label="Prix (€)"
-                type="number"
-                value={formData.price}
-                onChange={handleInputChange('price')}
-                required
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Stock"
-                type="number"
-                value={formData.stock}
-                onChange={handleInputChange('stock')}
-                required
+                label="Description courte *"
+                value={productForm.description}
+                onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
               />
             </Grid>
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                label="Description"
                 multiline
                 rows={3}
-                value={formData.description}
-                onChange={handleInputChange('description')}
+                label="Description détaillée"
+                value={productForm.longDescription}
+                onChange={(e) => setProductForm({ ...productForm, longDescription: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                type="number"
+                label="Prix *"
+                value={productForm.price}
+                onChange={(e) => setProductForm({ ...productForm, price: e.target.value })}
+                InputProps={{ endAdornment: '€' }}
+              />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                type="number"
+                label="Prix original"
+                value={productForm.originalPrice}
+                onChange={(e) => setProductForm({ ...productForm, originalPrice: e.target.value })}
+                InputProps={{ endAdornment: '€' }}
+              />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                type="number"
+                label="Stock *"
+                value={productForm.stock}
+                onChange={(e) => setProductForm({ ...productForm, stock: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Bienfaits (séparés par des virgules)"
+                value={productForm.benefits}
+                onChange={(e) => setProductForm({ ...productForm, benefits: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                multiline
+                rows={2}
+                label="Instructions d'utilisation"
+                value={productForm.usageInstructions}
+                onChange={(e) => setProductForm({ ...productForm, usageInstructions: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                multiline
+                rows={2}
+                label="Précautions"
+                value={productForm.precautions}
+                onChange={(e) => setProductForm({ ...productForm, precautions: e.target.value })}
               />
             </Grid>
           </Grid>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog}>Annuler</Button>
-          <Button
-            onClick={handleSubmit}
-            variant="contained"
-            sx={{
-              background: 'linear-gradient(45deg, #4CAF50, #8BC34A)',
-              '&:hover': {
-                background: 'linear-gradient(45deg, #388E3C, #689F38)',
-              },
-            }}
-          >
-            {editingProduct ? 'Modifier' : 'Ajouter'}
+          <Button onClick={() => setProductDialogOpen(false)}>Annuler</Button>
+          <Button onClick={handleProductSubmit} variant="contained">
+            {editingProduct ? 'Mettre à jour' : 'Créer'}
           </Button>
         </DialogActions>
       </Dialog>

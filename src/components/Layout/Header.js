@@ -34,6 +34,7 @@ const Header = () => {
   const navigationItems = [
     { label: 'Accueil', path: '/' },
     { label: 'Produits', path: '/produits' },
+    { label: 'Mon Compte', path: '/mon-compte' },
     { label: 'À Propos', path: '/a-propos' },
     { label: 'Contact', path: '/contact' },
   ];
