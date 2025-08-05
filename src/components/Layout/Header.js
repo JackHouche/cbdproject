@@ -112,29 +112,18 @@ const Header = () => {
             >
               <Box
                 component="img"
-                src="/logo-iocbd.png"
-                alt="IØCBD Logo"
+                src="/logo-iocbd-transparent.png"
+                alt="IØCBD"
                 sx={{
-                  height: '40px',
+                  height: { xs: '35px', md: '45px' },
                   width: 'auto',
-                  mr: 1,
-                  filter: 'brightness(1.1)',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    transform: 'scale(1.05)',
+                    filter: 'drop-shadow(0 4px 8px rgba(76, 175, 80, 0.3))',
+                  },
                 }}
               />
-              <Typography
-                variant="h4"
-                sx={{
-                  fontFamily: '"Dancing Script", cursive',
-                  fontWeight: 600,
-                  background: 'linear-gradient(45deg, #4CAF50, #8BC34A)',
-                  backgroundClip: 'text',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  fontSize: { xs: '1.5rem', md: '2rem' },
-                }}
-              >
-                IØCBD
-              </Typography>
             </Box>
           </motion.div>
 

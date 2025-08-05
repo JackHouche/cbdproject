@@ -109,7 +109,7 @@ const HomePage = () => {
                     WebkitTextFillColor: 'transparent',
                   }}
                 >
-                  IØCBD Premium
+                  CBD Premium
                 </Typography>
                 <Typography
                   variant="h3"
@@ -204,13 +204,14 @@ const HomePage = () => {
                   >
                     <Box
                       component="img"
-                      src="/logo-iocbd.png"
-                      alt="IØCBD Logo"
+                      src="/logo-iocbd-transparent.png"
+                      alt="IØCBD"
                       sx={{
-                        maxWidth: '80%',
-                        maxHeight: '80%',
+                        maxWidth: '70%',
+                        maxHeight: '70%',
                         objectFit: 'contain',
-                        filter: 'drop-shadow(0 10px 20px rgba(76, 175, 80, 0.3))',
+                        filter: 'drop-shadow(0 15px 30px rgba(76, 175, 80, 0.4))',
+                        animation: 'pulse 3s ease-in-out infinite',
                       }}
                     />
                   </Box>
