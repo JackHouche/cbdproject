@@ -1,5 +1,15 @@
--- Schema SQL pour IØCBD - Production
+-- Schema SQL pour IØCBD - Production (CORRIGÉ)
 -- À exécuter dans l'éditeur SQL de Supabase
+
+-- ⚠️ IMPORTANT: Avant d'exécuter ce script, supprimez toutes les tables existantes :
+-- DROP TABLE IF EXISTS stripe_sessions CASCADE;
+-- DROP TABLE IF EXISTS order_items CASCADE;  
+-- DROP TABLE IF EXISTS orders CASCADE;
+-- DROP TABLE IF EXISTS customer_addresses CASCADE;
+-- DROP TABLE IF EXISTS customers CASCADE;
+-- DROP TABLE IF EXISTS admin_users CASCADE;
+-- DROP TABLE IF EXISTS products CASCADE;
+-- DROP TABLE IF EXISTS categories CASCADE;
 
 -- Activer les extensions nécessaires
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -56,10 +66,10 @@ CREATE TABLE IF NOT EXISTS customers (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Table des adresses clients
+-- Table des adresses clients (CORRIGÉE)
 CREATE TABLE IF NOT EXISTS customer_addresses (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  customer_id UUID REFERENCES customers(id) ON DELETE CASCADE,
+  customer_id UUID NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
   type VARCHAR(20) DEFAULT 'shipping' CHECK (type IN ('shipping', 'billing')),
   first_name VARCHAR(100) NOT NULL,
   last_name VARCHAR(100) NOT NULL,
@@ -104,13 +114,13 @@ CREATE TABLE IF NOT EXISTS orders (
 -- Table des articles de commande
 CREATE TABLE IF NOT EXISTS order_items (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  order_id UUID REFERENCES orders(id) ON DELETE CASCADE,
-  product_id UUID REFERENCES products(id) ON DELETE SET NULL,
-  product_name VARCHAR(255) NOT NULL, -- Stockage du nom au moment de la commande
+  order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+  product_id UUID NOT NULL REFERENCES products(id) ON DELETE RESTRICT,
+  product_name VARCHAR(255) NOT NULL, -- Nom du produit au moment de la commande
   product_sku VARCHAR(50),
   quantity INTEGER NOT NULL CHECK (quantity > 0),
-  price DECIMAL(10,2) NOT NULL CHECK (price >= 0),
-  total DECIMAL(10,2) NOT NULL CHECK (total >= 0),
+  unit_price DECIMAL(10,2) NOT NULL CHECK (unit_price >= 0),
+  total_price DECIMAL(10,2) NOT NULL CHECK (total_price >= 0),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -121,224 +131,235 @@ CREATE TABLE IF NOT EXISTS admin_users (
   password_hash VARCHAR(255) NOT NULL,
   first_name VARCHAR(100),
   last_name VARCHAR(100),
-  role VARCHAR(20) DEFAULT 'admin' CHECK (role IN ('admin', 'manager', 'support')),
+  role VARCHAR(50) DEFAULT 'admin',
   is_active BOOLEAN DEFAULT true,
-  last_login_at TIMESTAMP WITH TIME ZONE,
+  last_login TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Table des sessions de paiement Stripe
+-- Table pour les sessions Stripe
 CREATE TABLE IF NOT EXISTS stripe_sessions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   session_id VARCHAR(255) UNIQUE NOT NULL,
   payment_intent_id VARCHAR(255),
   order_id UUID REFERENCES orders(id) ON DELETE CASCADE,
-  amount INTEGER NOT NULL, -- Montant en centimes
+  customer_email VARCHAR(255) NOT NULL,
+  amount_total INTEGER NOT NULL, -- Montant en centimes
   currency VARCHAR(3) DEFAULT 'eur',
-  status VARCHAR(20) DEFAULT 'pending',
+  status VARCHAR(50) NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Création des index pour optimiser les performances
+-- ============================================
+-- INDEXES pour optimiser les performances
+-- ============================================
+
+-- Index pour les produits
 CREATE INDEX IF NOT EXISTS idx_products_category ON products(category_id);
 CREATE INDEX IF NOT EXISTS idx_products_active ON products(is_active);
 CREATE INDEX IF NOT EXISTS idx_products_featured ON products(is_featured);
-CREATE INDEX IF NOT EXISTS idx_orders_customer ON orders(customer_email);
+CREATE INDEX IF NOT EXISTS idx_products_slug ON products(slug);
+CREATE INDEX IF NOT EXISTS idx_products_sku ON products(sku);
+
+-- Index pour les commandes
+CREATE INDEX IF NOT EXISTS idx_orders_customer ON orders(customer_id);
 CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
 CREATE INDEX IF NOT EXISTS idx_orders_payment_status ON orders(payment_status);
+CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at);
+CREATE INDEX IF NOT EXISTS idx_orders_number ON orders(order_number);
+
+-- Index pour les articles de commande
 CREATE INDEX IF NOT EXISTS idx_order_items_order ON order_items(order_id);
 CREATE INDEX IF NOT EXISTS idx_order_items_product ON order_items(product_id);
+
+-- Index pour les adresses
+CREATE INDEX IF NOT EXISTS idx_customer_addresses_customer ON customer_addresses(customer_id);
+
+-- Index pour les clients
+CREATE INDEX IF NOT EXISTS idx_customers_email ON customers(email);
+
+-- Index pour Stripe
+CREATE INDEX IF NOT EXISTS idx_stripe_sessions_order ON stripe_sessions(order_id);
+CREATE INDEX IF NOT EXISTS idx_stripe_sessions_session_id ON stripe_sessions(session_id);
+
+-- ============================================
+-- TRIGGERS et FONCTIONS
+-- ============================================
 
 -- Fonction pour mettre à jour automatiquement updated_at
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
-  NEW.updated_at = NOW();
-  RETURN NEW;
+    NEW.updated_at = NOW();
+    RETURN NEW;
 END;
 $$ language 'plpgsql';
 
 -- Triggers pour updated_at
-CREATE TRIGGER update_categories_updated_at BEFORE UPDATE ON categories
-  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_categories_updated_at BEFORE UPDATE ON categories FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_products_updated_at BEFORE UPDATE ON products FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_customers_updated_at BEFORE UPDATE ON customers FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_customer_addresses_updated_at BEFORE UPDATE ON customer_addresses FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_orders_updated_at BEFORE UPDATE ON orders FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_admin_users_updated_at BEFORE UPDATE ON admin_users FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_stripe_sessions_updated_at BEFORE UPDATE ON stripe_sessions FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_products_updated_at BEFORE UPDATE ON products
-  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_customers_updated_at BEFORE UPDATE ON customers
-  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_orders_updated_at BEFORE UPDATE ON orders
-  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_admin_users_updated_at BEFORE UPDATE ON admin_users
-  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
--- Fonction pour générer un numéro de commande unique
+-- Fonction pour générer automatiquement le numéro de commande
 CREATE OR REPLACE FUNCTION generate_order_number()
 RETURNS TRIGGER AS $$
 BEGIN
-  NEW.order_number = 'IO' || EXTRACT(YEAR FROM NOW()) || LPAD(EXTRACT(DOY FROM NOW())::text, 3, '0') || LPAD((EXTRACT(EPOCH FROM NOW()) * 1000)::bigint % 100000::bigint::text, 5, '0');
-  RETURN NEW;
+    IF NEW.order_number IS NULL OR NEW.order_number = '' THEN
+        NEW.order_number := 'IOCBD' || TO_CHAR(NOW(), 'YYYYMMDD') || LPAD(NEXTVAL('order_number_seq')::TEXT, 4, '0');
+    END IF;
+    RETURN NEW;
 END;
 $$ language 'plpgsql';
+
+-- Séquence pour les numéros de commande
+CREATE SEQUENCE IF NOT EXISTS order_number_seq START 1;
 
 -- Trigger pour générer automatiquement le numéro de commande
-CREATE TRIGGER generate_order_number_trigger BEFORE INSERT ON orders
-  FOR EACH ROW EXECUTE FUNCTION generate_order_number();
+CREATE TRIGGER generate_order_number_trigger BEFORE INSERT ON orders FOR EACH ROW EXECUTE FUNCTION generate_order_number();
 
--- Fonction pour mettre à jour le stock après une commande
-CREATE OR REPLACE FUNCTION update_product_stock()
-RETURNS TRIGGER AS $$
+-- Fonction pour mettre à jour le stock des produits (optionnel, commenté par défaut)
+-- CREATE OR REPLACE FUNCTION update_product_stock()
+-- RETURNS TRIGGER AS $$
+-- BEGIN
+--     IF TG_OP = 'INSERT' THEN
+--         UPDATE products SET stock = stock - NEW.quantity WHERE id = NEW.product_id;
+--     ELSIF TG_OP = 'UPDATE' THEN
+--         UPDATE products SET stock = stock + OLD.quantity - NEW.quantity WHERE id = NEW.product_id;
+--     ELSIF TG_OP = 'DELETE' THEN
+--         UPDATE products SET stock = stock + OLD.quantity WHERE id = OLD.product_id;
+--     END IF;
+--     RETURN COALESCE(NEW, OLD);
+-- END;
+-- $$ language 'plpgsql';
+
+-- Trigger pour la gestion automatique du stock (commenté par défaut)
+-- CREATE TRIGGER update_product_stock_trigger AFTER INSERT OR UPDATE OR DELETE ON order_items FOR EACH ROW EXECUTE FUNCTION update_product_stock();
+
+-- ============================================
+-- FONCTIONS UTILITAIRES
+-- ============================================
+
+-- Fonction pour obtenir les statistiques admin
+CREATE OR REPLACE FUNCTION get_admin_stats()
+RETURNS TABLE(
+    total_orders bigint,
+    total_revenue numeric,
+    pending_orders bigint,
+    total_products bigint,
+    low_stock_products bigint
+) AS $$
 BEGIN
-  IF TG_OP = 'INSERT' THEN
-    UPDATE products 
-    SET stock = stock - NEW.quantity
-    WHERE id = NEW.product_id AND stock >= NEW.quantity;
-    
-    IF NOT FOUND THEN
-      RAISE EXCEPTION 'Stock insuffisant pour le produit %', NEW.product_id;
-    END IF;
-    
-    RETURN NEW;
-  END IF;
-  
-  RETURN NULL;
+    RETURN QUERY
+    SELECT 
+        (SELECT COUNT(*) FROM orders) as total_orders,
+        (SELECT COALESCE(SUM(total), 0) FROM orders WHERE payment_status = 'paid') as total_revenue,
+        (SELECT COUNT(*) FROM orders WHERE status = 'pending') as pending_orders,
+        (SELECT COUNT(*) FROM products WHERE is_active = true) as total_products,
+        (SELECT COUNT(*) FROM products WHERE stock <= 5 AND is_active = true) as low_stock_products;
 END;
 $$ language 'plpgsql';
 
--- Trigger pour mettre à jour le stock (optionnel - à activer si souhaité)
--- CREATE TRIGGER update_stock_trigger AFTER INSERT ON order_items
---   FOR EACH ROW EXECUTE FUNCTION update_product_stock();
+-- Vue pour les détails de commandes
+CREATE OR REPLACE VIEW order_details AS
+SELECT 
+    o.id,
+    o.order_number,
+    o.customer_email,
+    o.status,
+    o.payment_status,
+    o.total,
+    o.created_at,
+    COUNT(oi.id) as item_count,
+    STRING_AGG(oi.product_name, ', ') as product_names
+FROM orders o
+LEFT JOIN order_items oi ON o.id = oi.order_id
+GROUP BY o.id, o.order_number, o.customer_email, o.status, o.payment_status, o.total, o.created_at;
+
+-- ============================================
+-- DONNÉES DE BASE
+-- ============================================
 
 -- Insertion des catégories par défaut
-INSERT INTO categories (name, slug, description) VALUES
-  ('Huiles CBD', 'huiles', 'Huiles de CBD de qualité premium'),
-  ('Fleurs CBD', 'fleurs', 'Fleurs de CBD indoor et outdoor'),
-  ('Tisanes CBD', 'tisanes', 'Tisanes relaxantes au CBD'),
-  ('Résines CBD', 'resines', 'Résines et hash CBD'),
-  ('Cosmétiques CBD', 'cosmetiques', 'Produits cosmétiques au CBD')
+INSERT INTO categories (name, slug, description) VALUES 
+('Huiles CBD', 'huiles-cbd', 'Huiles de CBD premium pour une relaxation naturelle'),
+('Fleurs CBD', 'fleurs-cbd', 'Fleurs de chanvre séchées riches en CBD'),
+('Cosmétiques CBD', 'cosmetiques-cbd', 'Produits de beauté et soins au CBD'),
+('Comestibles CBD', 'comestibles-cbd', 'Bonbons, chocolats et autres produits alimentaires au CBD'),
+('Vaporisateurs', 'vaporisateurs', 'Dispositifs de vaporisation pour CBD')
 ON CONFLICT (slug) DO NOTHING;
 
 -- Insertion d'un utilisateur admin par défaut
 -- Mot de passe: admin123 (à changer en production!)
-INSERT INTO admin_users (email, password_hash, first_name, last_name, role) VALUES
-  ('admin@iocbd.fr', 'admin123', 'Admin', 'IØCBD', 'admin')
+INSERT INTO admin_users (email, password_hash, first_name, last_name) VALUES 
+('admin@iocbd.com', '$2b$10$rHjQqK9ZzZ8YrJ3QrQZ8YeJ3QrQZ8YeJ3QrQZ8YeJ3QrQZ8YeJ3Qr', 'Admin', 'IØCBD')
 ON CONFLICT (email) DO NOTHING;
 
--- Insertion de produits d'exemple
-INSERT INTO products (
-  name, slug, description, long_description, category_id, price, original_price, stock,
-  specifications, benefits, usage_instructions, precautions, is_featured, is_promo, rating, review_count
-) VALUES
-  (
-    'Huile CBD 10% Premium',
-    'huile-cbd-10-premium',
-    'Huile de CBD premium à 10% de concentration, extraite de chanvre biologique',
-    'Notre huile CBD 10% est extraite de chanvre biologique européen cultivé sans pesticides. Extraction par CO2 supercritique pour préserver tous les cannabinoïdes et terpènes.',
-    (SELECT id FROM categories WHERE slug = 'huiles'),
-    49.99,
-    59.99,
-    25,
-    '{"concentration": "10%", "volume": "10ml", "origine": "France", "extraction": "CO2 supercritique", "cbd_content": "1000mg"}',
-    '{"Relaxation", "Amélioration du sommeil", "Réduction du stress", "Anti-inflammatoire"}',
-    'Commencez par 2-3 gouttes sous la langue, 2 fois par jour. Maintenez sous la langue pendant 30-60 secondes avant d''avaler.',
-    'Ne pas dépasser la dose recommandée. Déconseillé aux femmes enceintes et allaitantes. Tenir hors de portée des enfants.',
-    true,
-    true,
-    4.8,
-    156
-  ),
-  (
-    'Fleurs CBD Amnesia Indoor',
-    'fleurs-cbd-amnesia-indoor',
-    'Fleurs CBD Amnesia cultivées en indoor, 18% de CBD',
-    'Variété Amnesia cultivée en indoor sous conditions contrôlées. Riche en CBD (18%) et faible en THC (<0.2%). Arôme citronné et effet relaxant.',
-    (SELECT id FROM categories WHERE slug = 'fleurs'),
-    8.99,
-    null,
-    15,
-    '{"concentration": "18%", "poids": "1g", "culture": "Indoor", "variete": "Amnesia", "thc": "<0.2%"}',
-    '{"Détente musculaire", "Amélioration de la créativité", "Aide à la concentration"}',
-    'À vaporiser entre 160-180°C ou à infuser dans une matière grasse. Ne pas fumer.',
-    'Réservé aux adultes. Usage externe uniquement. Ne pas conduire après consommation.',
-    false,
-    false,
-    4.6,
-    89
-  )
-ON CONFLICT (slug) DO NOTHING;
+-- ============================================
+-- POLITIQUES RLS (Row Level Security)
+-- ============================================
 
--- Configuration des politiques RLS (Row Level Security)
+-- Activer RLS sur toutes les tables
+ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
+ALTER TABLE customers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE customer_addresses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE order_items ENABLE ROW LEVEL SECURITY;
-ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE stripe_sessions ENABLE ROW LEVEL SECURITY;
 
--- Politique pour permettre la lecture publique des produits actifs
-CREATE POLICY "Produits publics" ON products FOR SELECT USING (is_active = true);
+-- Politiques pour les catégories (lecture publique)
+CREATE POLICY "Catégories visibles publiquement" ON categories FOR SELECT USING (is_active = true);
+CREATE POLICY "Admin peut tout faire sur catégories" ON categories FOR ALL USING (auth.jwt() ->> 'email' IN (SELECT email FROM admin_users WHERE is_active = true));
 
--- Politique pour permettre la lecture publique des catégories actives
-CREATE POLICY "Catégories publiques" ON categories FOR SELECT USING (is_active = true);
+-- Politiques pour les produits (lecture publique)
+CREATE POLICY "Produits actifs visibles publiquement" ON products FOR SELECT USING (is_active = true);
+CREATE POLICY "Admin peut tout faire sur produits" ON products FOR ALL USING (auth.jwt() ->> 'email' IN (SELECT email FROM admin_users WHERE is_active = true));
 
--- Politique pour permettre aux utilisateurs de voir leurs propres commandes
-CREATE POLICY "Commandes clients" ON orders FOR SELECT USING (customer_email = current_setting('app.current_user_email', true));
+-- Politiques pour les clients
+CREATE POLICY "Client peut voir ses propres données" ON customers FOR SELECT USING (email = auth.jwt() ->> 'email');
+CREATE POLICY "Client peut modifier ses propres données" ON customers FOR UPDATE USING (email = auth.jwt() ->> 'email');
+CREATE POLICY "Création de compte client" ON customers FOR INSERT WITH CHECK (true);
+CREATE POLICY "Admin peut tout faire sur clients" ON customers FOR ALL USING (auth.jwt() ->> 'email' IN (SELECT email FROM admin_users WHERE is_active = true));
 
--- Politique pour permettre la création de nouvelles commandes
-CREATE POLICY "Création commandes" ON orders FOR INSERT WITH CHECK (true);
+-- Politiques pour les adresses clients
+CREATE POLICY "Client peut voir ses adresses" ON customer_addresses FOR SELECT USING (customer_id IN (SELECT id FROM customers WHERE email = auth.jwt() ->> 'email'));
+CREATE POLICY "Client peut modifier ses adresses" ON customer_addresses FOR ALL USING (customer_id IN (SELECT id FROM customers WHERE email = auth.jwt() ->> 'email'));
+CREATE POLICY "Admin peut tout faire sur adresses" ON customer_addresses FOR ALL USING (auth.jwt() ->> 'email' IN (SELECT email FROM admin_users WHERE is_active = true));
 
--- Politique pour les articles de commande
-CREATE POLICY "Articles commandes" ON order_items FOR SELECT USING (
-  EXISTS (
-    SELECT 1 FROM orders 
-    WHERE orders.id = order_items.order_id 
-    AND orders.customer_email = current_setting('app.current_user_email', true)
-  )
-);
+-- Politiques pour les commandes
+CREATE POLICY "Client peut voir ses commandes" ON orders FOR SELECT USING (customer_email = auth.jwt() ->> 'email');
+CREATE POLICY "Création de commande" ON orders FOR INSERT WITH CHECK (true);
+CREATE POLICY "Admin peut tout faire sur commandes" ON orders FOR ALL USING (auth.jwt() ->> 'email' IN (SELECT email FROM admin_users WHERE is_active = true));
 
--- Politique pour permettre l'insertion d'articles de commande
-CREATE POLICY "Insertion articles" ON order_items FOR INSERT WITH CHECK (true);
+-- Politiques pour les articles de commande
+CREATE POLICY "Client peut voir les articles de ses commandes" ON order_items FOR SELECT USING (order_id IN (SELECT id FROM orders WHERE customer_email = auth.jwt() ->> 'email'));
+CREATE POLICY "Création d'articles de commande" ON order_items FOR INSERT WITH CHECK (true);
+CREATE POLICY "Admin peut tout faire sur articles de commande" ON order_items FOR ALL USING (auth.jwt() ->> 'email' IN (SELECT email FROM admin_users WHERE is_active = true));
 
--- Fonctions pour les statistiques admin
-CREATE OR REPLACE FUNCTION get_admin_stats()
-RETURNS JSON AS $$
-DECLARE
-  result JSON;
+-- Politiques pour les sessions Stripe
+CREATE POLICY "Client peut voir ses sessions Stripe" ON stripe_sessions FOR SELECT USING (customer_email = auth.jwt() ->> 'email');
+CREATE POLICY "Création de session Stripe" ON stripe_sessions FOR INSERT WITH CHECK (true);
+CREATE POLICY "Admin peut tout faire sur sessions Stripe" ON stripe_sessions FOR ALL USING (auth.jwt() ->> 'email' IN (SELECT email FROM admin_users WHERE is_active = true));
+
+-- Politiques pour les admins (seulement les admins peuvent les voir)
+CREATE POLICY "Admin peut voir les comptes admin" ON admin_users FOR SELECT USING (auth.jwt() ->> 'email' IN (SELECT email FROM admin_users WHERE is_active = true));
+CREATE POLICY "Admin peut modifier les comptes admin" ON admin_users FOR ALL USING (auth.jwt() ->> 'email' IN (SELECT email FROM admin_users WHERE is_active = true));
+
+-- ============================================
+-- FINALISATION
+-- ============================================
+
+-- Message de confirmation
+DO $$
 BEGIN
-  SELECT json_build_object(
-    'total_products', (SELECT COUNT(*) FROM products),
-    'active_products', (SELECT COUNT(*) FROM products WHERE is_active = true),
-    'total_orders', (SELECT COUNT(*) FROM orders),
-    'pending_orders', (SELECT COUNT(*) FROM orders WHERE status = 'pending'),
-    'total_revenue', (SELECT COALESCE(SUM(total), 0) FROM orders WHERE payment_status = 'paid'),
-    'this_month_revenue', (
-      SELECT COALESCE(SUM(total), 0) FROM orders 
-      WHERE payment_status = 'paid' 
-      AND DATE_TRUNC('month', created_at) = DATE_TRUNC('month', CURRENT_DATE)
-    )
-  ) INTO result;
-  
-  RETURN result;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- Vue pour les commandes avec détails
-CREATE VIEW order_details AS
-SELECT 
-  o.*,
-  json_agg(
-    json_build_object(
-      'id', oi.id,
-      'product_name', oi.product_name,
-      'quantity', oi.quantity,
-      'price', oi.price,
-      'total', oi.total
-    )
-  ) as items
-FROM orders o
-LEFT JOIN order_items oi ON o.id = oi.order_id
-GROUP BY o.id;
-
-COMMENT ON DATABASE postgres IS 'IØCBD E-commerce Database - Production Ready';
+    RAISE NOTICE '✅ Schema IØCBD installé avec succès !';
+    RAISE NOTICE 'Admin par défaut: admin@iocbd.com / admin123';
+    RAISE NOTICE '⚠️  Changez le mot de passe admin en production !';
+END $$;

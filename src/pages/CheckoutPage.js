@@ -31,15 +31,19 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useCartStore } from '../store/cartStore';
+import useOrdersStore from '../store/ordersStore';
+import StripePaymentForm from '../components/StripePaymentForm';
 import toast from 'react-hot-toast';
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
   const { items, total, clearCart } = useCartStore();
+  const { createOrder } = useOrdersStore();
   const [activeStep, setActiveStep] = useState(0);
   const [shippingMethod, setShippingMethod] = useState('standard');
-  const [paymentMethod, setPaymentMethod] = useState('card');
+  const [paymentMethod, setPaymentMethod] = useState('stripe');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [orderNumber, setOrderNumber] = useState('');
 
   const [formData, setFormData] = useState({
     email: '',
@@ -79,16 +83,17 @@ const CheckoutPage = () => {
 
   const paymentOptions = [
     {
-      id: 'card',
-      name: 'Carte bancaire',
-      description: 'Visa, MasterCard, American Express',
+      id: 'stripe',
+      name: 'Carte bancaire (Stripe)',
+      description: 'Visa, MasterCard, American Express - Paiement sécurisé',
       icon: CreditCard,
     },
     {
       id: 'paypal',
       name: 'PayPal',
-      description: 'Paiement sécurisé avec PayPal',
+      description: 'Paiement sécurisé avec PayPal (Bientôt disponible)',
       icon: Payment,
+      disabled: true,
     },
   ];
 
@@ -122,7 +127,7 @@ const CheckoutPage = () => {
           formData.phone
         );
       case 1:
-        return formData.acceptTerms;
+        return formData.acceptTerms && paymentMethod;
       default:
         return true;
     }
@@ -140,26 +145,64 @@ const CheckoutPage = () => {
     setActiveStep((prevStep) => prevStep - 1);
   };
 
-  const handleSubmitOrder = async () => {
-    if (!validateStep(1)) {
-      toast.error('Veuillez accepter les conditions générales de vente');
-      return;
-    }
-
+  const handlePaymentSuccess = async (paymentResult) => {
     setIsProcessing(true);
     
-    // Simulation du traitement de commande
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Créer la commande avec les données du paiement
+      const orderData = {
+        customerInfo: {
+          email: formData.email,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          phone: formData.phone,
+          address: {
+            street: formData.address,
+            city: formData.city,
+            postalCode: formData.postalCode,
+            country: formData.country,
+          },
+          marketingConsent: formData.newsletter,
+        },
+        items: items.map(item => ({
+          productId: item.id,
+          productName: item.name,
+          quantity: item.quantity,
+          unitPrice: item.price,
+          totalPrice: item.price * item.quantity,
+        })),
+        subtotal: total,
+        shippingCost: selectedShipping.price,
+        taxAmount: 0, // À calculer selon les réglementations
+        total: finalTotal,
+        paymentMethod: 'stripe',
+        paymentIntentId: paymentResult.paymentIntentId,
+        shippingMethod: shippingMethod,
+        currency: 'EUR',
+      };
+
+      const createdOrder = await createOrder(orderData);
       
-      clearCart();
-      setActiveStep(2);
-      toast.success('Commande confirmée !');
+      if (createdOrder) {
+        setOrderNumber(createdOrder.orderNumber || `IOCBD${Date.now().toString().slice(-6)}`);
+        clearCart();
+        setActiveStep(2);
+        toast.success('Commande confirmée et paiement réussi !');
+      } else {
+        throw new Error('Erreur lors de la création de la commande');
+      }
     } catch (error) {
-      toast.error('Erreur lors du traitement de la commande');
+      console.error('Erreur lors du traitement de la commande:', error);
+      toast.error('Erreur lors du traitement de la commande. Veuillez réessayer.');
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const handlePaymentError = (error) => {
+    console.error('Erreur de paiement:', error);
+    toast.error(`Erreur de paiement: ${error.message || 'Veuillez réessayer'}`);
+    setIsProcessing(false);
   };
 
   if (items.length === 0 && activeStep < 2) {
@@ -344,9 +387,10 @@ const CheckoutPage = () => {
                 <FormControlLabel
                   key={option.id}
                   value={option.id}
-                  control={<Radio />}
+                  control={<Radio disabled={option.disabled} />}
+                  disabled={option.disabled}
                   label={
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, opacity: option.disabled ? 0.5 : 1 }}>
                       <option.icon />
                       <Box>
                         <Typography variant="body1" sx={{ fontWeight: 500 }}>
@@ -365,46 +409,27 @@ const CheckoutPage = () => {
           </FormControl>
         </Paper>
 
-        {paymentMethod === 'card' && (
+        {paymentMethod === 'stripe' && (
           <Paper sx={{ p: 3, mb: 3 }}>
             <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
-              Informations de paiement
+              Informations de paiement sécurisé
             </Typography>
-            <Grid container spacing={3}>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Numéro de carte"
-                  placeholder="1234 5678 9012 3456"
-                  InputProps={{
-                    startAdornment: <CreditCard sx={{ mr: 1, color: 'text.secondary' }} />,
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Date d'expiration"
-                  placeholder="MM/AA"
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Code CVV"
-                  placeholder="123"
-                  InputProps={{
-                    startAdornment: <Lock sx={{ mr: 1, color: 'text.secondary' }} />,
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Nom sur la carte"
-                />
-              </Grid>
-            </Grid>
+            <Alert severity="info" sx={{ mb: 3 }}>
+              <Typography variant="body2">
+                💳 Paiement sécurisé par Stripe. Vos données bancaires sont chiffrées et ne sont jamais stockées sur nos serveurs.
+              </Typography>
+            </Alert>
+            <StripePaymentForm
+              amount={finalTotal}
+              currency="EUR"
+              onSuccess={handlePaymentSuccess}
+              onError={handlePaymentError}
+              disabled={isProcessing}
+              customerInfo={{
+                email: formData.email,
+                name: `${formData.firstName} ${formData.lastName}`,
+              }}
+            />
           </Paper>
         )}
 
@@ -456,29 +481,15 @@ const CheckoutPage = () => {
             {finalTotal.toFixed(2)}€
           </Typography>
           
-          <Alert severity="info" sx={{ mb: 3 }}>
+          <Alert severity="success" sx={{ mb: 3 }}>
             <Typography variant="body2">
-              Paiement 100% sécurisé avec SSL
+              🔒 Paiement 100% sécurisé avec chiffrement SSL
             </Typography>
           </Alert>
 
-          <Button
-            fullWidth
-            variant="contained"
-            size="large"
-            onClick={handleSubmitOrder}
-            disabled={isProcessing}
-            sx={{
-              py: 2,
-              fontSize: '1.1rem',
-              background: 'linear-gradient(45deg, #4CAF50, #8BC34A)',
-              '&:hover': {
-                background: 'linear-gradient(45deg, #388E3C, #689F38)',
-              },
-            }}
-          >
-            {isProcessing ? 'Traitement...' : 'Confirmer la commande'}
-          </Button>
+          <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
+            Le paiement sera traité directement via Stripe lors de la validation de votre commande
+          </Typography>
         </Paper>
       </Grid>
     </Grid>
@@ -499,13 +510,19 @@ const CheckoutPage = () => {
       </Typography>
       
       <Typography variant="h6" sx={{ mb: 3, color: 'text.secondary' }}>
-        Numéro de commande : #CBD{Date.now().toString().slice(-6)}
+        Numéro de commande : {orderNumber}
       </Typography>
       
       <Typography variant="body1" sx={{ mb: 4, maxWidth: 600, mx: 'auto', lineHeight: 1.6 }}>
         Merci pour votre commande ! Vous recevrez un email de confirmation à l'adresse {formData.email}.
         Votre commande sera préparée et expédiée dans les plus brefs délais.
       </Typography>
+
+      <Alert severity="info" sx={{ mb: 4, maxWidth: 600, mx: 'auto' }}>
+        <Typography variant="body2">
+          💳 <strong>Paiement confirmé</strong> - Votre carte a été débitée de {finalTotal.toFixed(2)}€
+        </Typography>
+      </Alert>
 
       <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
         <Button
@@ -524,7 +541,7 @@ const CheckoutPage = () => {
         </Button>
         <Button
           variant="outlined"
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/mon-compte')}
           sx={{
             px: 4,
             py: 2,
@@ -536,7 +553,7 @@ const CheckoutPage = () => {
             },
           }}
         >
-          Retour à l'accueil
+          Suivre ma commande
         </Button>
       </Box>
     </Box>
@@ -609,6 +626,7 @@ const CheckoutPage = () => {
             <Button
               variant="contained"
               onClick={handleNext}
+              disabled={activeStep === 1 && paymentMethod === 'stripe'} // Stripe gère le paiement directement
               sx={{
                 px: 4,
                 py: 1.5,
@@ -618,7 +636,7 @@ const CheckoutPage = () => {
                 },
               }}
             >
-              {activeStep === steps.length - 2 ? 'Paiement' : 'Continuer'}
+              {activeStep === 0 ? 'Paiement' : 'Continuer'}
             </Button>
           </Box>
         )}
