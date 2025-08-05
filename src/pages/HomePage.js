@@ -109,7 +109,7 @@ const HomePage = () => {
                     WebkitTextFillColor: 'transparent',
                   }}
                 >
-                  Bien-être Naturel
+                  IØCBD Premium
                 </Typography>
                 <Typography
                   variant="h3"
@@ -202,7 +202,17 @@ const HomePage = () => {
                       boxShadow: '0 20px 40px rgba(76, 175, 80, 0.2)',
                     }}
                   >
-                    <Nature sx={{ fontSize: '8rem', color: 'primary.main' }} />
+                    <Box
+                      component="img"
+                      src="/logo-iocbd.png"
+                      alt="IØCBD Logo"
+                      sx={{
+                        maxWidth: '80%',
+                        maxHeight: '80%',
+                        objectFit: 'contain',
+                        filter: 'drop-shadow(0 10px 20px rgba(76, 175, 80, 0.3))',
+                      }}
+                    />
                   </Box>
                 </Box>
               </motion.div>

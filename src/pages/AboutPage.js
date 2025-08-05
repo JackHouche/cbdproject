@@ -93,7 +93,7 @@ const AboutPage = () => {
               WebkitTextFillColor: 'transparent',
             }}
           >
-            À Propos de CBD Nature
+            À Propos d'IØCBD
           </Typography>
           <Typography
             variant="h5"
@@ -119,18 +119,18 @@ const AboutPage = () => {
                 Notre Histoire
               </Typography>
               <Typography variant="body1" sx={{ mb: 3, lineHeight: 1.8, fontSize: '1.1rem' }}>
-                Fondée en 2019 par Marie Dubois, passionnée de phytothérapie, CBD Nature est née 
-                d'une conviction profonde : offrir des produits CBD de qualité exceptionnelle, 
-                cultivés dans le respect de la nature et des traditions françaises.
+                Fondée en 2020, IØCBD est née d'une passion pour le bien-être naturel et 
+                d'une vision claire : démocratiser l'accès à des produits CBD premium de 
+                qualité pharmaceutique, cultivés selon les plus hauts standards européens.
               </Typography>
               <Typography variant="body1" sx={{ mb: 3, lineHeight: 1.8, fontSize: '1.1rem' }}>
-                Basée dans le sud de la France, notre entreprise familiale travaille avec des 
-                agriculteurs locaux pour cultiver le chanvre dans des conditions optimales, 
-                sans pesticides ni produits chimiques.
+                Notre équipe d'experts travaille avec des cultivateurs sélectionnés à travers 
+                l'Europe pour garantir des produits exceptionnels, testés en laboratoire et 
+                conformes à la réglementation française la plus stricte.
               </Typography>
               <Typography variant="body1" sx={{ lineHeight: 1.8, fontSize: '1.1rem' }}>
-                Aujourd'hui, nous sommes fiers de compter plus de 10 000 clients satisfaits 
-                qui nous font confiance pour leur bien-être quotidien.
+                Aujourd'hui, IØCBD est reconnu comme une référence dans l'univers du CBD premium, 
+                avec des milliers de clients qui nous font confiance pour leur bien-être quotidien.
               </Typography>
             </Grid>
             <Grid item xs={12} md={6}>

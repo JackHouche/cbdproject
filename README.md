@@ -1,6 +1,6 @@
-# 🌿 CBD Nature - Boutique E-commerce Française
+# 🌿 IØCBD - Boutique E-commerce Premium Française
 
-Une boutique en ligne moderne et élégante pour la vente de produits CBD, construite avec React, Material-UI et une ambiance nature/chill.
+Une boutique en ligne moderne et élégante pour la vente de produits CBD premium IØCBD, construite avec React, Material-UI et une ambiance nature/chill.
 
 ## ✨ Fonctionnalités
 

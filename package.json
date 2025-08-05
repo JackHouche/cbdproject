@@ -1,7 +1,7 @@
 {
-  "name": "cbd-boutique-fr",
+  "name": "iocbd-boutique",
   "version": "1.0.0",
-  "description": "Boutique en ligne française pour la vente de CBD",
+  "description": "IØCBD - Boutique en ligne française pour la vente de CBD premium",
   "private": true,
   "dependencies": {
     "@emotion/react": "^11.11.1",

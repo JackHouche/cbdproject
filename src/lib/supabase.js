@@ -18,7 +18,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
   global: {
     headers: {
-      'X-Client-Info': 'cbd-nature@1.0.0'
+      'X-Client-Info': 'iocbd@1.0.0'
     }
   }
 });

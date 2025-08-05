@@ -18,7 +18,6 @@ import {
 import {
   ShoppingCart,
   Menu as MenuIcon,
-  Nature,
   Close,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
@@ -111,7 +110,17 @@ const Header = () => {
                 color: 'inherit',
               }}
             >
-              <Nature sx={{ color: 'primary.main', fontSize: '2rem', mr: 1 }} />
+              <Box
+                component="img"
+                src="/logo-iocbd.png"
+                alt="IØCBD Logo"
+                sx={{
+                  height: '40px',
+                  width: 'auto',
+                  mr: 1,
+                  filter: 'brightness(1.1)',
+                }}
+              />
               <Typography
                 variant="h4"
                 sx={{
@@ -121,9 +130,10 @@ const Header = () => {
                   backgroundClip: 'text',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
+                  fontSize: { xs: '1.5rem', md: '2rem' },
                 }}
               >
-                CBD Nature
+                IØCBD
               </Typography>
             </Box>
           </motion.div>

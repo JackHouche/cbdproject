@@ -46,19 +46,19 @@ const ContactPage = () => {
     {
       icon: Email,
       title: 'Email',
-      content: 'contact@cbdnature.fr',
+      content: 'contact@iocbd.fr',
       subtitle: 'Réponse sous 24h',
     },
     {
       icon: Phone,
       title: 'Téléphone',
-      content: '+33 1 23 45 67 89',
+      content: '+33 1 84 80 82 84',
       subtitle: 'Lun-Ven 9h-18h',
     },
     {
       icon: LocationOn,
       title: 'Adresse',
-      content: '123 Rue de la Nature\n75001 Paris, France',
+      content: '45 Avenue des Champs-Élysées\n75008 Paris, France',
       subtitle: 'Showroom sur RDV',
     },
     {

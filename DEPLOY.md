@@ -1,6 +1,6 @@
-# 🚀 Guide de Déploiement - CBD Nature
+# 🚀 Guide de Déploiement - IØCBD
 
-Ce guide vous explique comment déployer votre boutique CBD Nature sur Vercel avec Supabase.
+Ce guide vous explique comment déployer votre boutique IØCBD sur Vercel avec Supabase.
 
 ## 📋 Prérequis
 
@@ -15,7 +15,7 @@ Ce guide vous explique comment déployer votre boutique CBD Nature sur Vercel av
 1. Connectez-vous à [Supabase](https://supabase.com)
 2. Cliquez sur "New Project"
 3. Choisissez votre organisation
-4. Donnez un nom à votre projet (ex: `cbd-nature`)
+4. Donnez un nom à votre projet (ex: `iocbd`)
 5. Créez un mot de passe sécurisé
 6. Choisissez une région proche de vos utilisateurs
 

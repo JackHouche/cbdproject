@@ -15,7 +15,6 @@ import {
   Email,
   Phone,
   LocationOn,
-  Nature,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 
@@ -60,7 +59,17 @@ const Footer = () => {
               transition={{ duration: 0.6 }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <Nature sx={{ color: 'primary.main', fontSize: '2rem', mr: 1 }} />
+                <Box
+                  component="img"
+                  src="/logo-iocbd.png"
+                  alt="IØCBD Logo"
+                  sx={{
+                    height: '35px',
+                    width: 'auto',
+                    mr: 1,
+                    filter: 'brightness(1.1)',
+                  }}
+                />
                 <Typography
                   variant="h5"
                   sx={{
@@ -72,12 +81,12 @@ const Footer = () => {
                     WebkitTextFillColor: 'transparent',
                   }}
                 >
-                  CBD Nature
+                  IØCBD
                 </Typography>
               </Box>
               <Typography variant="body2" sx={{ mb: 2, opacity: 0.8, lineHeight: 1.6 }}>
-                Votre boutique française de CBD premium. Produits naturels et de qualité 
-                pour votre bien-être quotidien. Cultivé avec passion, livré avec soin.
+                Votre boutique française de CBD premium IØCBD. Produits naturels et de qualité 
+                supérieure pour votre bien-être quotidien. Cultivé avec passion, livré avec soin.
               </Typography>
               <Box sx={{ display: 'flex', gap: 1 }}>
                 {socialLinks.map((social, index) => (

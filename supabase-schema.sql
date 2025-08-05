@@ -1,4 +1,4 @@
--- Schema SQL pour la boutique CBD Nature
+-- Schema SQL pour la boutique IØCBD
 -- À exécuter dans l'éditeur SQL de Supabase
 
 -- Table des catégories de produits
