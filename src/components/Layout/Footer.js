@@ -15,7 +15,7 @@ import {
   Email,
   Phone,
   LocationOn,
-  Eco,
+  Nature,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 
@@ -60,7 +60,7 @@ const Footer = () => {
               transition={{ duration: 0.6 }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <Eco sx={{ color: 'primary.main', fontSize: '2rem', mr: 1 }} />
+                <Nature sx={{ color: 'primary.main', fontSize: '2rem', mr: 1 }} />
                 <Typography
                   variant="h5"
                   sx={{

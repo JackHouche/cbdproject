@@ -22,7 +22,7 @@ import {
   ShoppingCart,
   Favorite,
   FavoriteBorder,
-  Eco,
+  Nature,
   FilterList,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
@@ -372,7 +372,7 @@ const ProductsPage = () => {
                     textDecoration: 'none',
                   }}
                 >
-                  <Eco sx={{ fontSize: '3rem', color: 'primary.main' }} />
+                                      <Nature sx={{ fontSize: '3rem', color: 'primary.main' }} />
                 </CardMedia>
 
                 <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
@@ -467,7 +467,7 @@ const ProductsPage = () => {
           transition={{ duration: 0.6 }}
         >
           <Box sx={{ textAlign: 'center', py: 8 }}>
-            <Eco sx={{ fontSize: '4rem', color: 'text.secondary', mb: 2 }} />
+            <Nature sx={{ fontSize: '4rem', color: 'text.secondary', mb: 2 }} />
             <Typography variant="h5" sx={{ mb: 2, color: 'text.secondary' }}>
               Aucun produit trouvé
             </Typography>

@@ -13,7 +13,7 @@ import {
   Rating,
 } from '@mui/material';
 import {
-  Eco,
+  Nature,
   LocalShipping,
   Security,
   HealthAndSafety,
@@ -25,7 +25,7 @@ import { motion } from 'framer-motion';
 const HomePage = () => {
   const features = [
     {
-      icon: Eco,
+      icon: Nature,
       title: 'Produits Bio',
       description: 'CBD cultivé naturellement sans pesticides ni produits chimiques',
     },
@@ -202,7 +202,7 @@ const HomePage = () => {
                       boxShadow: '0 20px 40px rgba(76, 175, 80, 0.2)',
                     }}
                   >
-                    <Eco sx={{ fontSize: '8rem', color: 'primary.main' }} />
+                    <Nature sx={{ fontSize: '8rem', color: 'primary.main' }} />
                   </Box>
                 </Box>
               </motion.div>
@@ -335,7 +335,7 @@ const HomePage = () => {
                         justifyContent: 'center',
                       }}
                     >
-                      <Eco sx={{ fontSize: '4rem', color: 'primary.main' }} />
+                      <Nature sx={{ fontSize: '4rem', color: 'primary.main' }} />
                     </CardMedia>
                     <CardContent sx={{ p: 3 }}>
                       <Typography

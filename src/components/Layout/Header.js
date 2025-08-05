@@ -18,7 +18,7 @@ import {
 import {
   ShoppingCart,
   Menu as MenuIcon,
-  Eco,
+  Nature,
   Close,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
@@ -111,7 +111,7 @@ const Header = () => {
                 color: 'inherit',
               }}
             >
-              <Eco sx={{ color: 'primary.main', fontSize: '2rem', mr: 1 }} />
+              <Nature sx={{ color: 'primary.main', fontSize: '2rem', mr: 1 }} />
               <Typography
                 variant="h4"
                 sx={{

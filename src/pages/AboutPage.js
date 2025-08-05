@@ -10,7 +10,7 @@ import {
   Paper,
 } from '@mui/material';
 import {
-  Eco,
+  Nature,
   HealthAndSafety,
   Verified,
   LocalFlorist,
@@ -22,7 +22,7 @@ import { motion } from 'framer-motion';
 const AboutPage = () => {
   const values = [
     {
-      icon: Eco,
+      icon: Nature,
       title: 'Écologique',
       description: 'Culture biologique respectueuse de l\'environnement',
     },
@@ -144,7 +144,7 @@ const AboutPage = () => {
                   justifyContent: 'center',
                 }}
               >
-                <Eco sx={{ fontSize: '8rem', color: 'primary.main' }} />
+                <Nature sx={{ fontSize: '8rem', color: 'primary.main' }} />
               </Box>
             </Grid>
           </Grid>

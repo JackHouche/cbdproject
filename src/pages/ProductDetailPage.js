@@ -30,7 +30,7 @@ import {
   Security,
   LocalShipping,
   VerifiedUser,
-  Eco,
+  Nature,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useCartStore } from '../store/cartStore';
@@ -153,7 +153,7 @@ const ProductDetailPage = () => {
                   mb: 2,
                 }}
               >
-                <Eco sx={{ fontSize: '6rem', color: 'primary.main' }} />
+                <Nature sx={{ fontSize: '6rem', color: 'primary.main' }} />
               </Box>
 
               {/* Thumbnail Images */}
@@ -175,7 +175,7 @@ const ProductDetailPage = () => {
                         },
                       }}
                     >
-                      <Eco sx={{ fontSize: '2rem', color: 'primary.main' }} />
+                      <Nature sx={{ fontSize: '2rem', color: 'primary.main' }} />
                     </Box>
                   </Grid>
                 ))}
