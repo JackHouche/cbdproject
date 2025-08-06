@@ -61,7 +61,7 @@ const Footer = () => {
               <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
                 <Box
                   component="img"
-                  src="/logo-iocbd-transparent.png"
+                  src="/logo-iocbd-rounded.png"
                   alt="IØCBD"
                   sx={{
                     height: '40px',
