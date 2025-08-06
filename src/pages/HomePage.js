@@ -21,6 +21,7 @@ import {
   ArrowForward,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
+import Logo from '../components/Logo';
 
 const HomePage = () => {
   const features = [
@@ -202,15 +203,13 @@ const HomePage = () => {
                       boxShadow: '0 20px 40px rgba(76, 175, 80, 0.2)',
                     }}
                   >
-                    <Box
-                      component="img"
-                      src="/logo-iocbd-transparent.png"
-                      alt="IØCBD"
+                    <Logo
+                      variant="green"
+                      height="auto"
                       sx={{
                         maxWidth: '70%',
                         maxHeight: '70%',
                         objectFit: 'contain',
-                        filter: 'drop-shadow(0 15px 30px rgba(76, 175, 80, 0.4))',
                         animation: 'pulse 3s ease-in-out infinite',
                       }}
                     />

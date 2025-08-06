@@ -17,6 +17,7 @@ import {
   LocationOn,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
+import Logo from '../Logo';
 
 const Footer = () => {
   const socialLinks = [
@@ -59,15 +60,9 @@ const Footer = () => {
               transition={{ duration: 0.6 }}
             >
               <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
-                <Box
-                  component="img"
-                  src="/logo-iocbd-transparent.png"
-                  alt="IØCBD"
-                  sx={{
-                    height: '40px',
-                    width: 'auto',
-                    filter: 'drop-shadow(0 2px 4px rgba(76, 175, 80, 0.2))',
-                  }}
+                <Logo
+                  variant="dark"
+                  height="40px"
                 />
               </Box>
               <Typography variant="body2" sx={{ mb: 2, opacity: 0.8, lineHeight: 1.6 }}>

@@ -22,6 +22,7 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useCartStore } from '../../store/cartStore';
+import Logo from '../Logo';
 
 const Header = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -111,18 +112,13 @@ const Header = () => {
                 color: 'inherit',
               }}
             >
-              <Box
-                component="img"
-                src="/logo-iocbd-transparent.png"
-                alt="IØCBD"
+              <Logo
+                variant="light"
+                height={{ xs: '35px', md: '45px' }}
+                component={Link}
+                to="/"
                 sx={{
-                  height: { xs: '35px', md: '45px' },
-                  width: 'auto',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    transform: 'scale(1.05)',
-                    filter: 'drop-shadow(0 4px 8px rgba(76, 175, 80, 0.3))',
-                  },
+                  textDecoration: 'none',
                 }}
               />
             </Box>
