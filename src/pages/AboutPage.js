@@ -320,7 +320,7 @@ const AboutPage = () => {
                 Notre Engagement
               </Typography>
               <Typography variant="body1" sx={{ mb: 3, lineHeight: 1.8, fontSize: '1.1rem' }}>
-                Chez CBD Nature, nous nous engageons à vous fournir des produits de la plus haute qualité, 
+                Chez IØCBD, nous nous engageons à vous fournir des produits de la plus haute qualité, 
                 testés en laboratoire et conformes à la réglementation française.
               </Typography>
               <Typography variant="body1" sx={{ mb: 3, lineHeight: 1.8, fontSize: '1.1rem' }}>

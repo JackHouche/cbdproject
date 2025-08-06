@@ -61,12 +61,12 @@ const Footer = () => {
               <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
                 <Box
                   component="img"
-                  src="/logo-iocbd-transparent.png"
+                  src="/logo-iocbd.png"
                   alt="IØCBD"
                   sx={{
                     height: '40px',
                     width: 'auto',
-                    filter: 'drop-shadow(0 2px 4px rgba(76, 175, 80, 0.2))',
+                    filter: 'drop-shadow(0 2px 6px rgba(76, 175, 80, 0.3)) drop-shadow(0 1px 3px rgba(0, 0, 0, 0.2))',
                   }}
                 />
               </Box>
@@ -205,7 +205,7 @@ const Footer = () => {
         >
           <Box sx={{ textAlign: 'center' }}>
             <Typography variant="body2" sx={{ opacity: 0.6 }}>
-              © {new Date().getFullYear()} CBD Nature. Tous droits réservés. 
+              © {new Date().getFullYear()} IØCBD. Tous droits réservés. 
               Produits destinés aux adultes de plus de 18 ans.
             </Typography>
             <Typography variant="body2" sx={{ opacity: 0.6, mt: 1 }}>
