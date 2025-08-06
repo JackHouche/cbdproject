@@ -204,7 +204,7 @@ const HomePage = () => {
                   >
                     <Box
                       component="img"
-                      src="/logo-iocbd-transparent.png"
+                      src="/logo-iocbd-rounded.png"
                       alt="IØCBD"
                       sx={{
                         maxWidth: '70%',
