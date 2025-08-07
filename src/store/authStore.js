@@ -2,7 +2,8 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import Cookies from 'js-cookie';
 
-// Mot de passe admin simple (en production, utilisez une vraie base de données avec bcrypt)
+// Identifiants admin simples (en production, utilisez une vraie base de données avec bcrypt)
+const ADMIN_EMAIL = 'admin@iocbd.com';
 const ADMIN_PASSWORD = 'admin123';
 
 const useAuthStore = create(
@@ -16,17 +17,17 @@ const useAuthStore = create(
       isInitialized: false, // Nouveau flag pour savoir si l'auth a été vérifiée
 
       // Actions Admin
-      loginAdmin: async (password) => {
+      loginAdmin: async (email, password) => {
         set({ isLoading: true, error: null });
-        
+
         try {
-          // Vérification du mot de passe (simple pour la démo)
-          const isValid = password === ADMIN_PASSWORD;
+          // Vérification des identifiants (simple pour la démo)
+          const isValid = email === ADMIN_EMAIL && password === ADMIN_PASSWORD;
           
           if (isValid) {
             const adminUser = {
               id: 'admin',
-              email: 'admin@iocbd.com',
+              email: ADMIN_EMAIL,
               role: 'admin',
               name: 'Administrateur IØCBD',
               loginTime: new Date().toISOString(),
@@ -52,12 +53,12 @@ const useAuthStore = create(
 
             return { success: true };
           } else {
-            set({ 
-              error: 'Mot de passe incorrect', 
+            set({
+              error: 'Identifiants incorrects',
               isLoading: false,
               isInitialized: true
             });
-            return { success: false, error: 'Mot de passe incorrect' };
+            return { success: false, error: 'Identifiants incorrects' };
           }
         } catch (error) {
           set({ 
@@ -145,7 +146,7 @@ const useAuthStore = create(
               if (tokenData.expires > Date.now()) {
                 const adminUser = {
                   id: 'admin',
-                  email: 'admin@iocbd.com',
+                  email: ADMIN_EMAIL,
                   role: 'admin',
                   name: 'Administrateur IØCBD',
                 };

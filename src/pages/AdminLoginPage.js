@@ -16,6 +16,7 @@ import {
   Visibility,
   VisibilityOff,
   AdminPanelSettings,
+  Email,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import useAuthStore from '../store/authStore';
@@ -23,6 +24,7 @@ import AuthDebug from '../components/AuthDebug';
 import toast from 'react-hot-toast';
 
 const AdminLoginPage = () => {
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
@@ -42,15 +44,15 @@ const AdminLoginPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!password) {
-      toast.error('Veuillez saisir le mot de passe');
+
+    if (!email || !password) {
+      toast.error('Veuillez saisir l\'email et le mot de passe');
       return;
     }
 
     clearError();
-    
-    const result = await loginAdmin(password);
+
+    const result = await loginAdmin(email, password);
     
     if (result.success) {
       toast.success('Connexion réussie !');
@@ -120,9 +122,9 @@ const AdminLoginPage = () => {
           )}
 
           {/* Info Box */}
-          <Alert 
-            severity="info" 
-            sx={{ 
+          <Alert
+            severity="info"
+            sx={{
               mb: 3,
               backgroundColor: 'rgba(76, 175, 80, 0.1)',
               color: 'text.primary',
@@ -132,7 +134,7 @@ const AdminLoginPage = () => {
             }}
           >
             <Typography variant="body2">
-              <strong>Mot de passe par défaut :</strong> admin123
+              <strong>Identifiants par défaut :</strong> admin@iocbd.com / admin123
             </Typography>
           </Alert>
 
@@ -140,12 +142,29 @@ const AdminLoginPage = () => {
           <Box component="form" onSubmit={handleSubmit}>
             <TextField
               fullWidth
+              type="email"
+              label="Email administrateur"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              autoFocus
+              sx={{ mb: 3 }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Email color="primary" />
+                  </InputAdornment>
+                ),
+              }}
+            />
+
+            <TextField
+              fullWidth
               type={showPassword ? 'text' : 'password'}
               label="Mot de passe administrateur"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              autoFocus
               sx={{ mb: 3 }}
               InputProps={{
                 startAdornment: (
