@@ -28,6 +28,7 @@ import {
 import { motion } from 'framer-motion';
 import { useCartStore } from '../store/cartStore';
 import toast from 'react-hot-toast';
+import { mockProducts } from '../data/mockProducts';
 
 const ProductsPage = () => {
   const [sortBy, setSortBy] = useState('name');
@@ -36,122 +37,13 @@ const ProductsPage = () => {
   const [favorites, setFavorites] = useState(new Set());
   const addToCart = useCartStore((state) => state.addItem);
 
-  const products = [
-    {
-      id: 1,
-      name: 'Huile CBD 5%',
-      category: 'huiles',
-      price: 29.90,
-      originalPrice: 35.90,
-      rating: 4.6,
-      reviews: 89,
-      description: 'Huile de CBD douce pour débuter',
-      image: '/api/placeholder/300/300',
-      isNew: false,
-      isPromo: true,
-      stock: 15,
-    },
-    {
-      id: 2,
-      name: 'Huile CBD 10%',
-      category: 'huiles',
-      price: 49.90,
-      rating: 4.8,
-      reviews: 127,
-      description: 'Huile de CBD premium à spectre complet',
-      image: '/api/placeholder/300/300',
-      isNew: false,
-      isPromo: false,
-      stock: 23,
-    },
-    {
-      id: 3,
-      name: 'Huile CBD 20%',
-      category: 'huiles',
-      price: 89.90,
-      rating: 4.9,
-      reviews: 76,
-      description: 'Concentration élevée pour utilisateurs expérimentés',
-      image: '/api/placeholder/300/300',
-      isNew: true,
-      isPromo: false,
-      stock: 8,
-    },
-    {
-      id: 4,
-      name: 'Fleurs CBD Amnesia',
-      category: 'fleurs',
-      price: 8.90,
-      rating: 4.7,
-      reviews: 156,
-      description: 'Fleurs cultivées en intérieur, arôme citronné',
-      image: '/api/placeholder/300/300',
-      isNew: false,
-      isPromo: false,
-      stock: 45,
-    },
-    {
-      id: 5,
-      name: 'Fleurs CBD OG Kush',
-      category: 'fleurs',
-      price: 9.90,
-      rating: 4.8,
-      reviews: 134,
-      description: 'Variété premium aux notes terreuses',
-      image: '/api/placeholder/300/300',
-      isNew: false,
-      isPromo: false,
-      stock: 32,
-    },
-    {
-      id: 6,
-      name: 'Tisane Relaxante CBD',
-      category: 'tisanes',
-      price: 15.90,
-      rating: 4.5,
-      reviews: 89,
-      description: 'Mélange de plantes apaisantes avec CBD',
-      image: '/api/placeholder/300/300',
-      isNew: false,
-      isPromo: false,
-      stock: 67,
-    },
-    {
-      id: 7,
-      name: 'Résine CBD Afghan',
-      category: 'resines',
-      price: 6.90,
-      originalPrice: 8.90,
-      rating: 4.6,
-      reviews: 98,
-      description: 'Résine traditionnelle afghane au CBD',
-      image: '/api/placeholder/300/300',
-      isNew: false,
-      isPromo: true,
-      stock: 28,
-    },
-    {
-      id: 8,
-      name: 'Crème CBD Anti-douleur',
-      category: 'cosmetiques',
-      price: 34.90,
-      rating: 4.7,
-      reviews: 67,
-      description: 'Soulagement naturel des douleurs musculaires',
-      image: '/api/placeholder/300/300',
-      isNew: true,
-      isPromo: false,
-      stock: 19,
-    },
-  ];
+  const products = mockProducts;
 
   const categories = [
     { value: 'all', label: 'Toutes catégories' },
     { value: 'huiles', label: 'Huiles CBD' },
     { value: 'fleurs', label: 'Fleurs CBD' },
     { value: 'tisanes', label: 'Tisanes' },
-    { value: 'resines', label: 'Résines' },
-    { value: 'cosmetiques', label: 'Cosmétiques' },
   ];
 
   const sortOptions = [
@@ -164,7 +56,7 @@ const ProductsPage = () => {
 
   const filteredAndSortedProducts = products
     .filter(product => {
-      const matchesCategory = filterCategory === 'all' || product.category === filterCategory;
+      const matchesCategory = filterCategory === 'all' || product.categorySlug === filterCategory;
       const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           product.description.toLowerCase().includes(searchTerm.toLowerCase());
       return matchesCategory && matchesSearch;
@@ -360,20 +252,14 @@ const ProductsPage = () => {
                   )}
                 </IconButton>
 
-                <CardMedia
-                  component={Link}
-                  to={`/produit/${product.id}`}
-                  sx={{
-                    height: 200,
-                    background: 'linear-gradient(135deg, #F1F8E9, #DCEDC8)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    textDecoration: 'none',
-                  }}
-                >
-                                      <Nature sx={{ fontSize: '3rem', color: 'primary.main' }} />
-                </CardMedia>
+                <Box component={Link} to={`/produit/${product.id}`} sx={{ textDecoration: 'none' }}>
+                  <CardMedia
+                    component="img"
+                    image={product.images[0]}
+                    alt={product.name}
+                    sx={{ height: 200, objectFit: 'cover' }}
+                  />
+                </Box>
 
                 <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
                   <Typography

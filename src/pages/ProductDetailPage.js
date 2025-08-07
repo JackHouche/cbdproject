@@ -30,10 +30,10 @@ import {
   Security,
   LocalShipping,
   VerifiedUser,
-  Nature,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useCartStore } from '../store/cartStore';
+import { mockProducts } from '../data/mockProducts';
 import toast from 'react-hot-toast';
 
 const ProductDetailPage = () => {
@@ -43,45 +43,21 @@ const ProductDetailPage = () => {
   const [isFavorite, setIsFavorite] = useState(false);
   const addToCart = useCartStore((state) => state.addItem);
 
-  // Mock product data - in real app this would come from API
-  const product = {
-    id: parseInt(id),
-    name: 'Huile CBD 10%',
-    category: 'Huiles CBD',
-    price: 49.90,
-    originalPrice: 59.90,
-    rating: 4.8,
-    reviews: 127,
-    description: 'Huile de CBD premium à spectre complet, extraite de chanvre français cultivé biologiquement.',
-    longDescription: `Notre huile CBD 10% est extraite à partir de chanvre français cultivé sans pesticides. 
-    Elle contient un spectre complet de cannabinoïdes, terpènes et flavonoïdes pour un effet d'entourage optimal. 
-    Chaque flacon contient 30ml d'huile pure avec une concentration précise de 10% de CBD.`,
-    stock: 23,
-    isNew: false,
-    isPromo: true,
-    images: ['/api/placeholder/500/500', '/api/placeholder/500/500', '/api/placeholder/500/500'],
-    specifications: {
-      concentration: '10% CBD',
-      volume: '30ml',
-      extraction: 'CO2 supercritique',
-      origine: 'France',
-      thc: '< 0.2%',
-      certification: 'Bio',
-    },
-    benefits: [
-      'Favorise la relaxation',
-      'Aide à réduire le stress',
-      'Améliore la qualité du sommeil',
-      'Soulage les tensions musculaires',
-    ],
-    usage: `Commencez par 2-3 gouttes sous la langue, 2 fois par jour. 
-    Maintenez sous la langue pendant 30-60 secondes avant d'avaler. 
-    Augmentez progressivement selon vos besoins.`,
-    precautions: `Ne pas dépasser la dose recommandée. 
-    Déconseillé aux femmes enceintes et allaitantes. 
-    Tenir hors de portée des enfants. 
-    Consulter un médecin en cas de traitement médical.`,
-  };
+  const product = mockProducts.find(p => p.id === parseInt(id));
+  if (!product) {
+    return (
+      <Container maxWidth="md" sx={{ py: 8 }}>
+        <Typography variant="h5" align="center">
+          Produit introuvable
+        </Typography>
+        <Box sx={{ textAlign: 'center', mt: 4 }}>
+          <Button variant="contained" onClick={() => navigate('/produits')}>
+            Retour à la boutique
+          </Button>
+        </Box>
+      </Container>
+    );
+  }
 
   const handleQuantityChange = (newQuantity) => {
     if (newQuantity >= 1 && newQuantity <= product.stock) {
@@ -142,18 +118,12 @@ const ProductDetailPage = () => {
               </Box>
 
               {/* Main Image */}
-              <Box
-                sx={{
-                  height: 400,
-                  background: 'linear-gradient(135deg, #F1F8E9, #DCEDC8)',
-                  borderRadius: 2,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  mb: 2,
-                }}
-              >
-                <Nature sx={{ fontSize: '6rem', color: 'primary.main' }} />
+              <Box sx={{ height: 400, borderRadius: 2, mb: 2, overflow: 'hidden' }}>
+                <img
+                  src={product.images[0]}
+                  alt={product.name}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
               </Box>
 
               {/* Thumbnail Images */}
@@ -163,11 +133,8 @@ const ProductDetailPage = () => {
                     <Box
                       sx={{
                         height: 100,
-                        background: 'linear-gradient(135deg, #E8F5E8, #C8E6C9)',
                         borderRadius: 1,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
+                        overflow: 'hidden',
                         cursor: 'pointer',
                         border: '2px solid transparent',
                         '&:hover': {
@@ -175,7 +142,11 @@ const ProductDetailPage = () => {
                         },
                       }}
                     >
-                      <Nature sx={{ fontSize: '2rem', color: 'primary.main' }} />
+                      <img
+                        src={image}
+                        alt={`${product.name} ${index + 1}`}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
                     </Box>
                   </Grid>
                 ))}

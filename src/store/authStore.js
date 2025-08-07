@@ -2,8 +2,8 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import Cookies from 'js-cookie';
 
-// Mot de passe admin simple (en production, utilisez une vraie base de données avec bcrypt)
-const ADMIN_PASSWORD = 'admin123';
+// Mot de passe admin défini via les variables d'environnement
+const ADMIN_PASSWORD = process.env.REACT_APP_ADMIN_PASSWORD;
 
 const useAuthStore = create(
   persist(
