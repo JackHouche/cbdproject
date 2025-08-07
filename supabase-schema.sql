@@ -295,7 +295,7 @@ INSERT INTO categories (name, slug, description) VALUES
 ON CONFLICT (slug) DO NOTHING;
 
 -- Insertion d'un utilisateur admin par défaut
--- Mot de passe: admin123 (à changer en production!)
+-- Mot de passe: à définir via une variable d'environnement
 INSERT INTO admin_users (email, password_hash, first_name, last_name) VALUES 
 ('admin@iocbd.com', '$2b$10$rHjQqK9ZzZ8YrJ3QrQZ8YeJ3QrQZ8YeJ3QrQZ8YeJ3QrQZ8YeJ3Qr', 'Admin', 'IØCBD')
 ON CONFLICT (email) DO NOTHING;
@@ -360,6 +360,6 @@ CREATE POLICY "Admin peut modifier les comptes admin" ON admin_users FOR ALL USI
 DO $$
 BEGIN
     RAISE NOTICE '✅ Schema IØCBD installé avec succès !';
-    RAISE NOTICE 'Admin par défaut: admin@iocbd.com / admin123';
+    RAISE NOTICE 'Admin par défaut: admin@iocbd.com / <password>'; -- définir un mot de passe sécurisé
     RAISE NOTICE '⚠️  Changez le mot de passe admin en production !';
 END $$;

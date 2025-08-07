@@ -119,23 +119,6 @@ const AdminLoginPage = () => {
             </Alert>
           )}
 
-          {/* Info Box */}
-          <Alert 
-            severity="info" 
-            sx={{ 
-              mb: 3,
-              backgroundColor: 'rgba(76, 175, 80, 0.1)',
-              color: 'text.primary',
-              '& .MuiAlert-icon': {
-                color: 'primary.main',
-              },
-            }}
-          >
-            <Typography variant="body2">
-              <strong>Mot de passe par défaut :</strong> admin123
-            </Typography>
-          </Alert>
-
           {/* Login Form */}
           <Box component="form" onSubmit={handleSubmit}>
             <TextField
@@ -194,8 +177,8 @@ const AdminLoginPage = () => {
           </Box>
         </Paper>
         
-        {/* Debug Component - À supprimer en production */}
-        <AuthDebug />
+        {/* Debug Component - activé uniquement en développement */}
+        {process.env.REACT_APP_DEBUG_AUTH === 'true' && <AuthDebug />}
       </motion.div>
     </Container>
   );
