@@ -1,10 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import Cookies from 'js-cookie';
-
-// Identifiants admin simples (en production, utilisez une vraie base de données avec bcrypt)
-const ADMIN_EMAIL = 'admin@iocbd.com';
-const ADMIN_PASSWORD = 'admin123';
+import supabase, { DB_TABLES, authService } from '../lib/supabase';
 
 const useAuthStore = create(
   persist(
@@ -21,107 +18,115 @@ const useAuthStore = create(
         set({ isLoading: true, error: null });
 
         try {
-          // Vérification des identifiants (simple pour la démo)
-          const isValid = email === ADMIN_EMAIL && password === ADMIN_PASSWORD;
-          
-          if (isValid) {
-            const adminUser = {
-              id: 'admin',
-              email: ADMIN_EMAIL,
-              role: 'admin',
-              name: 'Administrateur IØCBD',
-              loginTime: new Date().toISOString(),
-            };
+          const { data, error } = await authService.verifyAdminCredentials(email, password);
 
-            // Créer un token de session
-            const token = btoa(JSON.stringify({ 
-              userId: adminUser.id, 
-              timestamp: Date.now(),
-              expires: Date.now() + (24 * 60 * 60 * 1000) // 24h
-            }));
-
-            // Stocker le token dans les cookies
-            Cookies.set('admin_token', token, { expires: 1 }); // 1 jour
-
-            set({ 
-              isAuthenticated: true, 
-              user: adminUser, 
-              isLoading: false,
-              error: null,
-              isInitialized: true
-            });
-
-            return { success: true };
-          } else {
-            set({
-              error: 'Identifiants incorrects',
-              isLoading: false,
-              isInitialized: true
-            });
+          if (error || !data) {
+            set({ error: 'Identifiants incorrects', isLoading: false, isInitialized: true });
             return { success: false, error: 'Identifiants incorrects' };
           }
-        } catch (error) {
-          set({ 
-            error: 'Erreur de connexion', 
-            isLoading: false,
-            isInitialized: true
-          });
-          return { success: false, error: 'Erreur de connexion' };
-        }
-      },
 
-      // Connexion client (simulation)
-      loginCustomer: async (email, password) => {
-        set({ isLoading: true, error: null });
-        
-        try {
-          // Simulation de connexion client
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          
-          const customerUser = {
-            id: 'customer_' + Date.now(),
-            email,
-            role: 'customer',
-            name: email.split('@')[0],
+          const adminUser = {
+            id: data.id || 'admin',
+            email: data.email,
+            role: 'admin',
+            name: 'Administrateur IØCBD',
             loginTime: new Date().toISOString(),
           };
 
-          const token = btoa(JSON.stringify({ 
-            userId: customerUser.id, 
+          const token = btoa(JSON.stringify({
+            userId: adminUser.id,
             timestamp: Date.now(),
-            expires: Date.now() + (7 * 24 * 60 * 60 * 1000) // 7 jours
+            expires: Date.now() + 24 * 60 * 60 * 1000,
           }));
 
-          Cookies.set('customer_token', token, { expires: 7 });
+          Cookies.set('admin_token', token, { expires: 1 });
 
-          set({ 
-            isAuthenticated: true, 
-            user: customerUser, 
+          set({
+            isAuthenticated: true,
+            user: adminUser,
             isLoading: false,
             error: null,
-            isInitialized: true
+            isInitialized: true,
           });
 
           return { success: true };
         } catch (error) {
-          set({ 
-            error: 'Erreur de connexion', 
+          set({
+            error: 'Erreur de connexion',
             isLoading: false,
-            isInitialized: true
+            isInitialized: true,
           });
           return { success: false, error: 'Erreur de connexion' };
         }
       },
 
+      // Connexion client via Supabase
+      loginCustomer: async (email, password) => {
+        set({ isLoading: true, error: null });
+
+        try {
+          const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+          if (error || !data.user) {
+            throw error;
+          }
+
+          const customerUser = {
+            id: data.user.id,
+            email: data.user.email,
+            role: 'customer',
+            name: data.user.user_metadata?.name || data.user.email.split('@')[0],
+            loginTime: new Date().toISOString(),
+          };
+
+          set({
+            isAuthenticated: true,
+            user: customerUser,
+            isLoading: false,
+            error: null,
+            isInitialized: true,
+          });
+
+          return { success: true };
+        } catch (error) {
+          set({
+            error: 'Erreur de connexion',
+            isLoading: false,
+            isInitialized: true,
+          });
+          return { success: false, error: 'Erreur de connexion' };
+        }
+      },
+
+      // Inscription client via Supabase
+      registerCustomer: async (email, password, firstName, lastName) => {
+        set({ isLoading: true, error: null });
+
+        try {
+          const { data, error } = await supabase.auth.signUp({ email, password });
+          if (error || !data.user) {
+            throw error;
+          }
+
+          await supabase.from(DB_TABLES.CUSTOMERS).insert([{ id: data.user.id, email, first_name: firstName, last_name: lastName }]);
+
+          set({ isLoading: false });
+          return { success: true };
+        } catch (error) {
+          set({ isLoading: false, error: error.message });
+          return { success: false, error: error.message };
+        }
+      },
+
       // Déconnexion
-      logout: () => {
+      logout: async () => {
         Cookies.remove('admin_token');
-        Cookies.remove('customer_token');
-        set({ 
-          isAuthenticated: false, 
-          user: null, 
+        await supabase.auth.signOut();
+        set({
+          isAuthenticated: false,
+          user: null,
           error: null,
-          isInitialized: true
+          isInitialized: true,
         });
       },
 
@@ -138,93 +143,67 @@ const useAuthStore = create(
 
         try {
           const adminToken = Cookies.get('admin_token');
-          const customerToken = Cookies.get('customer_token');
-          
+
           if (adminToken) {
             try {
               const tokenData = JSON.parse(atob(adminToken));
               if (tokenData.expires > Date.now()) {
                 const adminUser = {
-                  id: 'admin',
-                  email: ADMIN_EMAIL,
+                  id: tokenData.userId,
+                  email: 'admin@iocbd.com',
                   role: 'admin',
                   name: 'Administrateur IØCBD',
                 };
-                
-                set({ 
-                  isAuthenticated: true, 
+
+                set({
+                  isAuthenticated: true,
                   user: adminUser,
                   isLoading: false,
-                  isInitialized: true
+                  isInitialized: true,
                 });
                 return true;
-              } else {
-                // Token expiré
-                Cookies.remove('admin_token');
               }
+              Cookies.remove('admin_token');
             } catch (error) {
               console.error('Token admin invalide:', error);
               Cookies.remove('admin_token');
             }
           }
-          
-          if (customerToken) {
-            try {
-              const tokenData = JSON.parse(atob(customerToken));
-              if (tokenData.expires > Date.now()) {
-                // Récupérer les données client depuis le localStorage si disponible
-                const userData = state.user;
-                if (userData && userData.role === 'customer') {
-                  set({ 
-                    isAuthenticated: true,
-                    isLoading: false,
-                    isInitialized: true
-                  });
-                  return true;
-                } else {
-                  // Créer un utilisateur par défaut si pas de données
-                  const customerUser = {
-                    id: tokenData.userId,
-                    email: 'client@example.com',
-                    role: 'customer',
-                    name: 'Client',
-                  };
-                  
-                  set({ 
-                    isAuthenticated: true, 
-                    user: customerUser,
-                    isLoading: false,
-                    isInitialized: true
-                  });
-                  return true;
-                }
-              } else {
-                // Token expiré
-                Cookies.remove('customer_token');
-              }
-            } catch (error) {
-              console.error('Token client invalide:', error);
-              Cookies.remove('customer_token');
-            }
+
+          const { data } = await supabase.auth.getSession();
+          const sessionUser = data.session?.user;
+          if (sessionUser) {
+            const customerUser = {
+              id: sessionUser.id,
+              email: sessionUser.email,
+              role: 'customer',
+              name: sessionUser.user_metadata?.name || sessionUser.email.split('@')[0],
+            };
+
+            set({
+              isAuthenticated: true,
+              user: customerUser,
+              isLoading: false,
+              isInitialized: true,
+            });
+            return true;
           }
-          
-          // Aucun token valide trouvé
-          set({ 
-            isAuthenticated: false, 
-            user: null,
-            isLoading: false,
-            isInitialized: true
-          });
-          return false;
-          
-        } catch (error) {
-          console.error('Erreur lors de la vérification de l\'authentification:', error);
-          set({ 
-            isAuthenticated: false, 
+
+          set({
+            isAuthenticated: false,
             user: null,
             isLoading: false,
             isInitialized: true,
-            error: 'Erreur de vérification'
+          });
+          return false;
+        } catch (error) {
+          console.error('Erreur lors de la vérification de l\'authentification:', error);
+          set({
+            isAuthenticated: false,
+            user: null,
+            isLoading: false,
+            isInitialized: true,
+            error: 'Erreur de vérification',
           });
           return false;
         }

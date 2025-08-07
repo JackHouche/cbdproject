@@ -14,6 +14,7 @@ import ContactPage from './pages/ContactPage';
 import AdminPage from './pages/AdminPage';
 import AdminLoginPage from './pages/AdminLoginPage';
 import CustomerPage from './pages/CustomerPage';
+import RegisterPage from './pages/RegisterPage';
 
 function App() {
 
@@ -35,6 +36,7 @@ function App() {
           <Route path="/a-propos" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/mon-compte" element={<CustomerPage />} />
+          <Route path="/inscription" element={<RegisterPage />} />
           <Route path="/admin/login" element={<AdminLoginPage />} />
           <Route 
             path="/admin" 

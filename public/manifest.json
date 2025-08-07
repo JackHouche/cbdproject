@@ -1,0 +1,15 @@
+{
+  "short_name": "IOCDB",
+  "name": "IOCDB Boutique",
+  "icons": [
+    {
+      "src": "/logo-iocbd.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#4CAF50",
+  "background_color": "#ffffff"
+}

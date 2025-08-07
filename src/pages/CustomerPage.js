@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import {
   Container,
   Paper,
@@ -26,6 +26,7 @@ import {
   Step,
   StepLabel,
   StepContent,
+  Link,
 } from '@mui/material';
 import {
   Person,
@@ -59,12 +60,6 @@ const LoginTab = ({ loginForm, setLoginForm, handleLogin }) => (
         </Typography>
       </Box>
 
-      <Alert severity="info" sx={{ mb: 3 }}>
-        <Typography variant="body2">
-          <strong>Démo :</strong> Utilisez n'importe quel email et mot de passe
-        </Typography>
-      </Alert>
-
       <Box component="form" onSubmit={handleLogin}>
         <TextField
           fullWidth
@@ -93,6 +88,12 @@ const LoginTab = ({ loginForm, setLoginForm, handleLogin }) => (
         >
           Se connecter
         </Button>
+        <Typography variant="body2" sx={{ mt: 2, textAlign: 'center' }}>
+          Pas encore de compte ?{' '}
+          <Link component={RouterLink} to="/inscription">
+            Créer un compte
+          </Link>
+        </Typography>
       </Box>
     </Paper>
   </Box>
@@ -132,7 +133,7 @@ const CustomerPage = () => {
     if (result.success) {
       toast.success('Connexion réussie !');
     } else {
-      toast.error('Erreur de connexion');
+      toast.error(result.error || 'Erreur de connexion');
     }
   };
 

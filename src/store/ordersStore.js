@@ -200,17 +200,17 @@ const useOrdersStore = create(
           unpaidOrders: orders.filter(o => o.paymentStatus === 'pending').length,
           totalRevenue: orders
             .filter(o => o.paymentStatus === 'paid')
-            .reduce((sum, o) => sum + o.pricing.total, 0),
+            .reduce((sum, o) => sum + (o.pricing?.total || 0), 0),
           thisMonthRevenue: thisMonthOrders
             .filter(o => o.paymentStatus === 'paid')
-            .reduce((sum, o) => sum + o.pricing.total, 0),
+            .reduce((sum, o) => sum + (o.pricing?.total || 0), 0),
           lastMonthRevenue: lastMonthOrders
             .filter(o => o.paymentStatus === 'paid')
-            .reduce((sum, o) => sum + o.pricing.total, 0),
+            .reduce((sum, o) => sum + (o.pricing?.total || 0), 0),
           thisMonthOrders: thisMonthOrders.length,
           lastMonthOrders: lastMonthOrders.length,
-          averageOrderValue: orders.length > 0 
-            ? orders.reduce((sum, o) => sum + o.pricing.total, 0) / orders.length 
+          averageOrderValue: orders.length > 0
+            ? orders.reduce((sum, o) => sum + (o.pricing?.total || 0), 0) / orders.length
             : 0,
         };
       },

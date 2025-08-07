@@ -20,7 +20,6 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import useAuthStore from '../store/authStore';
-import AuthDebug from '../components/AuthDebug';
 import toast from 'react-hot-toast';
 
 const AdminLoginPage = () => {
@@ -213,8 +212,6 @@ const AdminLoginPage = () => {
           </Box>
         </Paper>
         
-        {/* Debug Component - À supprimer en production */}
-        <AuthDebug />
       </motion.div>
     </Container>
   );
