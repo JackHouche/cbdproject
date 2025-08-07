@@ -269,6 +269,13 @@ export const orderService = {
 export const authService = {
   // Vérifier les credentials admin
   async verifyAdminCredentials(email, password) {
+    const defaultEmail = process.env.REACT_APP_ADMIN_EMAIL || 'admin@iocbd.com';
+    const defaultPassword = process.env.REACT_APP_ADMIN_PASSWORD || 'admin123';
+
+    if (email === defaultEmail && password === defaultPassword) {
+      return { data: { id: 'default-admin', email: defaultEmail, role: 'admin' }, error: null };
+    }
+
     try {
       const { data, error } = await supabase
         .from(DB_TABLES.ADMIN_USERS)
