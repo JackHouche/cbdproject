@@ -46,6 +46,58 @@ import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
+const LoginTab = ({ loginForm, setLoginForm, handleLogin }) => (
+  <Box sx={{ maxWidth: 400, mx: 'auto' }}>
+    <Paper sx={{ p: 4 }}>
+      <Box sx={{ textAlign: 'center', mb: 3 }}>
+        <Person sx={{ fontSize: '3rem', color: 'primary.main', mb: 2 }} />
+        <Typography variant="h5" sx={{ mb: 1 }}>
+          Connexion Client
+        </Typography>
+        <Typography color="text.secondary">
+          Accédez à votre espace personnel
+        </Typography>
+      </Box>
+
+      <Alert severity="info" sx={{ mb: 3 }}>
+        <Typography variant="body2">
+          <strong>Démo :</strong> Utilisez n'importe quel email et mot de passe
+        </Typography>
+      </Alert>
+
+      <Box component="form" onSubmit={handleLogin}>
+        <TextField
+          fullWidth
+          type="email"
+          label="Adresse email"
+          value={loginForm.email}
+          onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
+          sx={{ mb: 2 }}
+          required
+        />
+        <TextField
+          fullWidth
+          type="password"
+          label="Mot de passe"
+          value={loginForm.password}
+          onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+          sx={{ mb: 3 }}
+          required
+        />
+        <Button
+          type="submit"
+          fullWidth
+          variant="contained"
+          size="large"
+          startIcon={<Login />}
+        >
+          Se connecter
+        </Button>
+      </Box>
+    </Paper>
+  </Box>
+);
+
 const CustomerPage = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
@@ -129,59 +181,6 @@ const CustomerPage = () => {
       );
     });
   };
-
-  // Login Tab
-  const LoginTab = () => (
-    <Box sx={{ maxWidth: 400, mx: 'auto' }}>
-      <Paper sx={{ p: 4 }}>
-        <Box sx={{ textAlign: 'center', mb: 3 }}>
-          <Person sx={{ fontSize: '3rem', color: 'primary.main', mb: 2 }} />
-          <Typography variant="h5" sx={{ mb: 1 }}>
-            Connexion Client
-          </Typography>
-          <Typography color="text.secondary">
-            Accédez à votre espace personnel
-          </Typography>
-        </Box>
-
-        <Alert severity="info" sx={{ mb: 3 }}>
-          <Typography variant="body2">
-            <strong>Démo :</strong> Utilisez n'importe quel email et mot de passe
-          </Typography>
-        </Alert>
-
-        <Box component="form" onSubmit={handleLogin}>
-          <TextField
-            fullWidth
-            type="email"
-            label="Adresse email"
-            value={loginForm.email}
-            onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
-            sx={{ mb: 2 }}
-            required
-          />
-          <TextField
-            fullWidth
-            type="password"
-            label="Mot de passe"
-            value={loginForm.password}
-            onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
-            sx={{ mb: 3 }}
-            required
-          />
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            size="large"
-            startIcon={<Login />}
-          >
-            Se connecter
-          </Button>
-        </Box>
-      </Paper>
-    </Box>
-  );
 
   // Orders Tab
   const OrdersTab = () => (
@@ -365,7 +364,11 @@ const CustomerPage = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <LoginTab />
+          <LoginTab
+            loginForm={loginForm}
+            setLoginForm={setLoginForm}
+            handleLogin={handleLogin}
+          />
         </motion.div>
       </Container>
     );
