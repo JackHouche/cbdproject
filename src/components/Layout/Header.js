@@ -113,7 +113,7 @@ const Header = () => {
             >
               <Box
                 component="img"
-                src="/logo-iocbd.png"
+                src="/logo-iocbd-rounded.png"
                 alt="IØCBD"
                 sx={{
                   height: { xs: '35px', md: '45px' },

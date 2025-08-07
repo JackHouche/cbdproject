@@ -14,13 +14,13 @@ import ContactPage from './pages/ContactPage';
 import AdminPage from './pages/AdminPage';
 import AdminLoginPage from './pages/AdminLoginPage';
 import CustomerPage from './pages/CustomerPage';
+import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
-
   return (
-    <Box sx={{ 
-      minHeight: '100vh', 
-      display: 'flex', 
+    <Box sx={{
+      minHeight: '100vh',
+      display: 'flex',
       flexDirection: 'column',
       background: 'linear-gradient(135deg, #F8F9FA 0%, #E8F5E8 100%)'
     }}>
@@ -36,22 +36,23 @@ function App() {
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/mon-compte" element={<CustomerPage />} />
           <Route path="/admin/login" element={<AdminLoginPage />} />
-          <Route 
-            path="/admin" 
+          <Route
+            path="/admin"
             element={
               <ProtectedRoute requiredRole="admin">
                 <AdminPage />
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/admin/dashboard" 
+          <Route
+            path="/admin/dashboard"
             element={
               <ProtectedRoute requiredRole="admin">
                 <AdminPage />
               </ProtectedRoute>
-            } 
+            }
           />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Box>
       <Footer />

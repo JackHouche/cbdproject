@@ -4,15 +4,11 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
 const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
 
-// Vérification des variables d'environnement
+let supabase = null;
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('❌ Variables d\'environnement Supabase manquantes!');
-  console.error('Veuillez configurer REACT_APP_SUPABASE_URL et REACT_APP_SUPABASE_ANON_KEY');
-  throw new Error('Configuration Supabase manquante');
-}
-
-// Création du client Supabase
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  console.warn("⚠️ Variables d'environnement Supabase manquantes. Les fonctionnalités dépendantes sont désactivées.");
+} else {
+  supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
@@ -27,7 +23,10 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   db: {
     schema: 'public'
   }
-});
+  });
+}
+
+export { supabase };
 
 // Types de données et tables
 export const DB_TABLES = {

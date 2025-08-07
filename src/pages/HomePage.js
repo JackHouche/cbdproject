@@ -21,6 +21,7 @@ import {
   ArrowForward,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
+import { mockProducts } from '../data/mockProducts';
 
 const HomePage = () => {
   const features = [
@@ -46,35 +47,7 @@ const HomePage = () => {
     },
   ];
 
-  const featuredProducts = [
-    {
-      id: 1,
-      name: 'Huile CBD 10%',
-      price: 49.90,
-      image: '/api/placeholder/300/300',
-      rating: 4.8,
-      reviews: 127,
-      description: 'Huile de CBD premium à spectre complet',
-    },
-    {
-      id: 2,
-      name: 'Fleurs CBD Indoor',
-      price: 8.90,
-      image: '/api/placeholder/300/300',
-      rating: 4.9,
-      reviews: 89,
-      description: 'Fleurs cultivées en intérieur, qualité supérieure',
-    },
-    {
-      id: 3,
-      name: 'Tisane Relaxante',
-      price: 15.90,
-      image: '/api/placeholder/300/300',
-      rating: 4.7,
-      reviews: 156,
-      description: 'Mélange de plantes apaisantes avec CBD',
-    },
-  ];
+  const featuredProducts = mockProducts.filter(p => p.isFeatured).slice(0, 3);
 
   return (
     <Box>
@@ -204,7 +177,7 @@ const HomePage = () => {
                   >
                     <Box
                       component="img"
-                      src="/logo-iocbd.png"
+                      src="/logo-iocbd-rounded.png"
                       alt="IØCBD"
                       sx={{
                         maxWidth: '70%',
@@ -337,17 +310,11 @@ const HomePage = () => {
                     to={`/produit/${product.id}`}
                   >
                     <CardMedia
-                      component="div"
-                      sx={{
-                        height: 250,
-                        background: 'linear-gradient(135deg, #F1F8E9, #DCEDC8)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <Nature sx={{ fontSize: '4rem', color: 'primary.main' }} />
-                    </CardMedia>
+                      component="img"
+                      image={product.images[0]}
+                      alt={product.name}
+                      sx={{ height: 250, objectFit: 'cover' }}
+                    />
                     <CardContent sx={{ p: 3 }}>
                       <Typography
                         variant="h6"

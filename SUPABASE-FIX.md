@@ -66,7 +66,7 @@ SELECT * FROM get_admin_stats();
 
 2. **Données de test** : Après la réinitialisation, vous aurez :
    - 5 catégories par défaut
-   - 1 compte admin : `admin@iocbd.com` / `admin123`
+   - 1 compte admin : `admin@iocbd.com` / mot de passe à définir
    - Aucun produit (à ajouter via le panel admin)
 
 3. **RLS activé** : Les politiques de sécurité au niveau des lignes sont automatiquement configurées.
@@ -90,7 +90,7 @@ Cette approche est plus complexe et nécessite une planification minutieuse.
 
 Après avoir appliqué le correctif :
 
-1. Connectez-vous au panel admin avec `admin@iocbd.com` / `admin123`
+1. Connectez-vous au panel admin avec `admin@iocbd.com` et votre mot de passe défini
 2. Créez quelques produits de test
 3. Testez le processus de commande complet
 4. Vérifiez que les paiements Stripe sont correctement simulés
