@@ -119,9 +119,10 @@ const Header = () => {
                   height: { xs: '35px', md: '45px' },
                   width: 'auto',
                   transition: 'all 0.3s ease',
+                  filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15))',
                   '&:hover': {
                     transform: 'scale(1.05)',
-                    filter: 'drop-shadow(0 4px 8px rgba(76, 175, 80, 0.3))',
+                    filter: 'drop-shadow(0 4px 12px rgba(76, 175, 80, 0.4)) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15))',
                   },
                 }}
               />

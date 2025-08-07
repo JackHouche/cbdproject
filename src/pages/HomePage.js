@@ -82,7 +82,7 @@ const HomePage = () => {
                     WebkitTextFillColor: 'transparent',
                   }}
                 >
-                  CBD Premium
+                  IØCBD
                 </Typography>
                 <Typography
                   variant="h3"
@@ -93,7 +93,7 @@ const HomePage = () => {
                     fontWeight: 400,
                   }}
                 >
-                  Découvrez notre gamme de CBD premium français
+                  Découvrez notre gamme IØCBD premium français
                 </Typography>
                 <Typography
                   variant="body1"
@@ -183,7 +183,7 @@ const HomePage = () => {
                         maxWidth: '70%',
                         maxHeight: '70%',
                         objectFit: 'contain',
-                        filter: 'drop-shadow(0 15px 30px rgba(76, 175, 80, 0.4))',
+                        filter: 'drop-shadow(0 15px 30px rgba(76, 175, 80, 0.4)) drop-shadow(0 5px 10px rgba(0, 0, 0, 0.1))',
                         animation: 'pulse 3s ease-in-out infinite',
                       }}
                     />
@@ -209,7 +209,7 @@ const HomePage = () => {
               align="center"
               sx={{ mb: 6, color: 'text.primary' }}
             >
-              Pourquoi choisir CBD Nature ?
+              Pourquoi choisir IØCBD ?
             </Typography>
           </motion.div>
           <Grid container spacing={4}>
@@ -409,7 +409,7 @@ const HomePage = () => {
                 }}
               >
                 Découvrez nos produits CBD de qualité premium et rejoignez des milliers 
-                de clients satisfaits qui ont fait confiance à CBD Nature.
+                de clients satisfaits qui ont fait confiance à IØCBD.
               </Typography>
               <Button
                 component={Link}

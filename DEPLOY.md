@@ -51,7 +51,7 @@ REACT_APP_SUPABASE_URL=https://your-project.supabase.co
 REACT_APP_SUPABASE_ANON_KEY=your-anon-key
 
 # App Configuration
-REACT_APP_APP_NAME=CBD Nature
+REACT_APP_APP_NAME=IØCBD
 REACT_APP_APP_URL=https://your-app.vercel.app
 REACT_APP_ENV=production
 ```
@@ -75,7 +75,7 @@ REACT_APP_ENV=production
 
 | Variable | Description | Valeur par défaut |
 |----------|-------------|-------------------|
-| `REACT_APP_APP_NAME` | Nom de l'application | `CBD Nature` |
+| `REACT_APP_APP_NAME` | Nom de l'application | `IØCBD` |
 | `REACT_APP_APP_URL` | URL de l'application | URL Vercel |
 | `REACT_APP_ENV` | Environnement | `production` |
 | `REACT_APP_STRIPE_PUBLIC_KEY` | Clé publique Stripe | - |
@@ -199,4 +199,4 @@ vercel logs --follow
 
 ---
 
-Votre boutique CBD Nature est maintenant prête pour la production ! 🌿
+Votre boutique IØCBD est maintenant prête pour la production ! 🌿
